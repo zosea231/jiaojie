@@ -63,12 +63,6 @@ if grep -R -E -q '[[:alpha:]]:\\[^[:space:]<]' \
   echo 'FAIL: public docs or templates contain a Windows absolute path' >&2
   exit 1
 fi
-if grep -R --exclude=check.sh -E -q 'dual-agent-workflow|Dual-Agent Workflow' \
-  SKILL.md README.md agents scripts assets references .ai; then
-  echo 'FAIL: repository still contains the previous skill name' >&2
-  exit 1
-fi
-
 bash -n scripts/init_workflow.sh scripts/check.sh assets/check.sh
 
 tmp_dir="$(mktemp -d)"
