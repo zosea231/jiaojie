@@ -1,0 +1,4 @@
+interface:
+  display_name: "Agent Workplace Init"
+  short_description: "Initialize a safe Codex and Claude agent workplace"
+  default_prompt: "Use $agent-workplace-init to initialize this project for a single-writer Codex and Claude Code workflow."
