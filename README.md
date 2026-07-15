@@ -1,5 +1,8 @@
 # Agent Workplace Init
 
+[![Agent Skills](https://img.shields.io/badge/Agent%20Skills-agent--workplace--init-blueviolet)](skills/agent-workplace-init/SKILL.md)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+
 一个 SKILL.md 格式的 Agent Skill：一键在任意项目里搭建 **Codex + Claude
 Code 双 Agent 协作工作流**——生成 `AGENTS.md` / `CLAUDE.md` /
 `scripts/check.sh` / `.ai/` 交接文档结构，内置五条严格协作规则（单点写入、
@@ -52,40 +55,38 @@ flowchart LR
 `.ai/` 是共享状态，不是共享写入权：任一时刻仍然只有一个 Agent 可以改文件。
 典型闭环是 **分析 → 实现 → 统一检查 → 独立审查 → 定向修复 → 人工合并**。
 
-## 安装
+## 一行安装
 
-本仓库用的是通用 SKILL.md 格式，Claude Code 和 Codex CLI 都能原生识别，
-放对目录即可，内容不需要做任何转换：
-
-| Agent | 个人级（所有项目可用） | 项目级（随仓库分发） |
-|---|---|---|
-| Claude Code | `~/.claude/skills/` | `.claude/skills/` |
-| Codex CLI   | `~/.codex/skills/`  | `.codex/skills/`  |
-
-### 方式一：git clone（推荐，便于后续 `git pull` 更新）
+推荐用 skills CLI 一次安装到 Codex 和 Claude Code 的用户级目录：
 
 ```bash
-# Claude Code，个人级
-git clone https://github.com/zosea231/agent-workplace-init ~/.claude/skills/agent-workplace-init
-
-# Codex CLI，个人级
-git clone https://github.com/zosea231/agent-workplace-init ~/.codex/skills/agent-workplace-init
-
-# 想随仓库分发给团队，任选一个agent对应的项目级目录即可，例如：
-git clone https://github.com/zosea231/agent-workplace-init .codex/skills/agent-workplace-init
+npx skills add zosea231/agent-workplace-init --skill agent-workplace-init --agent codex claude-code -g -y
 ```
 
-只用 Codex 调用这个 skill 的话，装到 `~/.codex/skills/` 或 `.codex/skills/`
-即可，不需要同时装到 `~/.claude/skills/`。
+使用 GitHub CLI（`gh skill` 目前为 preview）时，按目标 Agent 安装：
 
-### 方式二：下载 zip 手动解压
+```bash
+# Codex
+gh skill install zosea231/agent-workplace-init agent-workplace-init --agent codex --scope user
 
-下载本仓库的 zip，解压后把 `agent-workplace-init/` 整个文件夹（注意：是这个
-文件夹本身，不要多一层嵌套）放到上表对应的目录下，确保路径是：
-
+# Claude Code
+gh skill install zosea231/agent-workplace-init agent-workplace-init --agent claude-code --scope user
 ```
+
+装完可直接对 Agent 说：
+
+```text
+使用 $agent-workplace-init 为当前项目初始化 Codex + Claude Code 单写入协作工作区。
+```
+
+### 手动安装（fallback）
+
+下载或克隆本仓库后，把 `skills/agent-workplace-init/` 复制到目标 Agent 的
+用户级技能目录，确保最终路径是：
+
+```text
 ~/.codex/skills/agent-workplace-init/SKILL.md   ✅ 正确
-~/.codex/skills/agent-workplace-init/some-folder/SKILL.md  ❌ 多嵌套了一层
+~/.claude/skills/agent-workplace-init/SKILL.md ✅ 正确
 ```
 
 安装完成后，**重启 Codex CLI / Claude Code**（或开一个新会话）。Codex 可以
@@ -130,28 +131,18 @@ agent-workplace-init/
 ├── .gitattributes              # 固定脚本与文档的跨平台换行规则
 ├── .gitignore                  # 排除生成 ZIP 和本地临时文件
 ├── AGENTS.md                   # Codex 在本仓库内的协作规则
-├── agents/
-│   └── openai.yaml             # Codex 技能列表展示元数据
 ├── CLAUDE.md                   # Claude Code 在本仓库内的协作规则
 ├── LICENSE
 ├── README.md
-├── SKILL.md                    # skill 元数据、触发条件与执行流程
 ├── scripts/
-│   ├── init_workflow.sh        # 实际执行搭建的脚本
 │   └── check.sh                # 本仓库自己的唯一验证入口
-├── assets/                     # 会被复制到目标项目里的模板文件
-│   ├── AGENTS.md
-│   ├── CLAUDE.md
-│   ├── check.sh
-│   └── ai-templates/
-│       ├── brief.md
-│       ├── plan.md
-│       ├── review.md
-│       ├── backlog.md
-│       ├── decision-log.md
-│       └── prompts-examples.md
-└── references/
-    └── rules.md                 # 五条协作规则的详细说明和典型工作流
+└── skills/
+    └── agent-workplace-init/   # 可被 npx skills / gh skill 发现的 Skill
+        ├── SKILL.md
+        ├── agents/openai.yaml
+        ├── scripts/init_workflow.sh
+        ├── references/rules.md
+        └── assets/             # 会被复制到目标项目里的模板文件
 ```
 
 ## License

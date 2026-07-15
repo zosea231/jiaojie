@@ -1,6 +1,7 @@
 ---
 name: agent-workplace-init
 description: "Initialize a Codex + Claude Code agent workplace in the current project — creates AGENTS.md, CLAUDE.md, scripts/check.sh, and the .ai/ handoff docs (brief.md, plan.md, review.md, backlog.md, decision-log.md). Use when the user asks to initialize an agent workplace, set up a multi-agent or dual-agent workflow, make Codex and Claude Code collaborate on a repository, bootstrap AGENTS.md/CLAUDE.md, or establish single-writer rules, documentation-driven handoffs, role-separated planning/implementation/review, and a unified validation entrypoint. Also use it to explain or apply those collaboration rules even when the user is not asking for scaffolding files."
+license: MIT
 ---
 
 # Agent Workplace Init
