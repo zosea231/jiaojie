@@ -20,8 +20,11 @@ required=(
   "$skill_dir/assets/ai-templates/backlog.md"
   "$skill_dir/assets/ai-templates/decision-log.md"
   "$skill_dir/assets/ai-templates/prompts-examples.md"
+  "$skill_dir/assets/ai-templates/roster.md"
+  "$skill_dir/assets/ai-templates/asset-manifest.md"
   .ai/brief.md .ai/plan.md .ai/review.md .ai/backlog.md
-  .ai/decision-log.md .ai/prompts-examples.md
+  .ai/decision-log.md .ai/prompts-examples.md .ai/roster.md
+  .ai/asset-manifest.md
 )
 
 for path in "${required[@]}"; do
@@ -37,15 +40,23 @@ test ! -e "$skill_dir/assets/check.sh" || {
   exit 1
 }
 
-cmp -s AGENTS.md "$skill_dir/assets/AGENTS.md" || {
-  echo "FAIL: AGENTS.md and its scaffold template differ" >&2
+grep -q '^<!-- Repository self-hosting copy\.' AGENTS.md || {
+  echo "FAIL: AGENTS.md is missing its repository self-hosting banner" >&2
   exit 1
 }
-cmp -s CLAUDE.md "$skill_dir/assets/CLAUDE.md" || {
-  echo "FAIL: CLAUDE.md and its scaffold template differ" >&2
+tail -n +3 AGENTS.md | cmp -s - "$skill_dir/assets/AGENTS.md" || {
+  echo "FAIL: AGENTS.md differs from its scaffold template after the self-hosting banner" >&2
   exit 1
 }
-for name in brief plan review backlog decision-log prompts-examples; do
+grep -q '^<!-- Repository self-hosting copy\.' CLAUDE.md || {
+  echo "FAIL: CLAUDE.md is missing its repository self-hosting banner" >&2
+  exit 1
+}
+tail -n +3 CLAUDE.md | cmp -s - "$skill_dir/assets/CLAUDE.md" || {
+  echo "FAIL: CLAUDE.md differs from its scaffold template after the self-hosting banner" >&2
+  exit 1
+}
+for name in brief plan review backlog decision-log prompts-examples roster asset-manifest; do
   cmp -s ".ai/$name.md" "$skill_dir/assets/ai-templates/$name.md" || {
     echo "FAIL: .ai/$name.md is not in the clean initial template state" >&2
     exit 1
@@ -54,6 +65,10 @@ done
 
 grep -q '^name: agent-workplace-init$' "$skill_dir/SKILL.md"
 grep -q '^description:' "$skill_dir/SKILL.md"
+grep -q '^# AWI · Agent Workplace Init$' README.md
+grep -q '^> 给多个 AI Agent 一套不会互相踩踏的工作协议。$' README.md
+grep -q '^# AWI · Agent Workplace Init$' "$skill_dir/SKILL.md"
+grep -q 'The shorthand AWI also triggers this skill' "$skill_dir/SKILL.md"
 grep -q 'display_name: "Agent Workplace Init"' "$skill_dir/agents/openai.yaml"
 grep -q '\$agent-workplace-init' "$skill_dir/agents/openai.yaml"
 grep -q 'Three-strike circuit breaker' "$skill_dir/SKILL.md"
@@ -64,6 +79,8 @@ grep -q 'Stage 3 — Claude Code: review independently' "$skill_dir/SKILL.md"
 grep -q '阶段 1：Claude Code 规划与路线选择' "$skill_dir/assets/ai-templates/prompts-examples.md"
 grep -q '阶段 2：Codex 实施与检查' "$skill_dir/assets/ai-templates/prompts-examples.md"
 grep -q '阶段 3：Claude Code 独立审查' "$skill_dir/assets/ai-templates/prompts-examples.md"
+grep -q '场景 C：接入图片 / 视频生成 Agent' "$skill_dir/assets/ai-templates/prompts-examples.md"
+grep -q 'generate-(image|video)' "$skill_dir/assets/scripts/check.sh"
 
 if grep -R -E -q '[[:alpha:]]:\\[^[:space:]<]' README.md AGENTS.md CLAUDE.md skills .ai; then
   echo 'FAIL: public docs or templates contain a Windows absolute path' >&2
@@ -81,7 +98,7 @@ bash "$skill_dir/scripts/init_workflow.sh" "$tmp_dir" >/dev/null
 grep -q 'PRESERVE_EXISTING_FILE' "$tmp_dir/AGENTS.md"
 for path in AGENTS.md CLAUDE.md scripts/check.sh .ai/brief.md .ai/plan.md \
   .ai/review.md .ai/backlog.md .ai/decision-log.md \
-  .ai/prompts-examples.md; do
+  .ai/prompts-examples.md .ai/roster.md .ai/asset-manifest.md; do
   test -f "$tmp_dir/$path" || {
     echo "FAIL: scaffold did not create $path" >&2
     exit 1
@@ -89,6 +106,20 @@ for path in AGENTS.md CLAUDE.md scripts/check.sh .ai/brief.md .ai/plan.md \
 done
 test ! -e "$tmp_dir/src" || {
   echo "FAIL: scaffold created unrelated src/ directory" >&2
+  exit 1
+}
+
+mkdir -p "$tmp_dir/scripts/checks"
+printf '%s\n' '| image-gen-01 | image model | generate-image | no | idle |' \
+  >> "$tmp_dir/.ai/roster.md"
+cat > "$tmp_dir/scripts/checks/assets.sh" <<'EOF'
+#!/usr/bin/env bash
+set -e
+touch .asset-check-ran
+EOF
+(cd "$tmp_dir" && bash scripts/check.sh >/dev/null)
+test -f "$tmp_dir/.asset-check-ran" || {
+  echo "FAIL: unified check did not dispatch generated asset checks" >&2
   exit 1
 }
 

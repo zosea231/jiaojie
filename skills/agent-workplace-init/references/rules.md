@@ -1,4 +1,4 @@
-# Dual-Agent Collaboration Rules — Rationale
+# Agent Collaboration Rules — Rationale
 
 This is the detailed reference behind the five hard rules mentioned in
 `SKILL.md`. Read this when the user wants the "why", not just the
@@ -7,10 +7,11 @@ covered by AGENTS.md / CLAUDE.md.
 
 ## 1. Single-writer
 
-Only one agent (Codex or Claude Code) may hold write access at any
-given time. This isn't just a politeness convention — concurrent edits
-from two agents on the same files is how you get silently-clobbered
-changes and unreviewable diffs.
+Only one agent may hold logical write authority at any given time. The
+agent is named by `Current writer` in `.ai/roster.md`; the default roster
+contains only Codex and Claude Code. This isn't just a politeness
+convention — concurrent edits from multiple agents on the same files is
+how you get silently-clobbered changes and unreviewable diffs.
 
 - **Codex side**: controlled via approval modes (read / edit / run
   permissions). Default `Auto` mode is a reasonable safe default.
@@ -20,10 +21,10 @@ changes and unreviewable diffs.
   it needs to be implemented as a Claude Code hook
   (pre-tool-use / post-tool-use), not just prose in CLAUDE.md.
 
-When acting as either agent, before making any edit: check whose turn
-it is (per `.ai/plan.md` status or explicit human instruction this
-session). If it's ambiguous, ask rather than assume you have write
-access.
+Before making any edit, check `.ai/roster.md`, `.ai/plan.md`, and the
+human's current instruction. If the assignment changed, record the new
+writer in the roster before work starts. If it's ambiguous, ask rather
+than assume you have write access.
 
 ## 2. Documentation over conversation memory
 
@@ -37,13 +38,20 @@ conversation history:
 | `.ai/review.md` | Review findings, split by priority (P0/P1/P2) |
 | `.ai/backlog.md` | Issues noticed but out of scope for this task |
 | `.ai/decision-log.md` | Why past decisions were made |
+| `.ai/roster.md` | Participating agents, capabilities, file access, status, and current writer |
+| `.ai/asset-manifest.md` | Complete prompts, paths, checks, and acceptance state for generated assets |
 
 At the start of *every* task — and especially at the start of a new
-session — actively read these files before doing anything else. Long
-conversations and cross-session work are exactly where key context
-gets lost or misremembered, which is how a project quietly drifts off
-track. If something in this conversation contradicts what's written in
-`.ai/`, the files win.
+session — file-capable agents actively read the original five files in
+the documented order, then `roster.md`, and `asset-manifest.md` when the
+task involves generated assets. Long conversations and cross-session
+work are exactly where key context gets lost or misremembered, which is
+how a project quietly drifts off track. If something in this
+conversation contradicts what's written in `.ai/`, the files win.
+
+An agent with `file-access: no` is the explicit exception: never tell it
+to read `.ai/`. A file-capable agent must translate the relevant context
+and acceptance criteria into one self-contained prompt.
 
 ## 3. One role per turn
 
@@ -63,11 +71,11 @@ not into the diff.
 
 ## 4. One fixed check entrypoint
 
-`./scripts/check.sh` is the *only* validation command either agent may
-run — never invent, guess, or substitute a different lint/test/build
-command. This matters for two reasons:
+`./scripts/check.sh` is the *only* validation command any file-capable
+agent may run — never invent, guess, or substitute a different
+lint/test/build command. This matters for two reasons:
 
-- **Consistency**: both agents (and the human) get directly comparable
+- **Consistency**: all agents (and the human) get directly comparable
   feedback, since it's always the same checks.
 - **Closes the loop**: this is what turns agent work from "freeform and
   hard to trust" into "change → check → feedback → fix", repeated until
@@ -75,6 +83,13 @@ command. This matters for two reasons:
   this: give an agent a runnable way to verify its own work, or it will
   fall back on "looks done to me" as its stopping condition — which is
   a real risk when changes are incomplete or contain hidden bugs.
+
+Generated assets use the same entrypoint but a different kind of check.
+When the roster contains a `generate-image` or `generate-video` agent and
+`scripts/checks/assets.sh` exists, `check.sh` dispatches to that script
+for mechanical checks such as file existence, decodability, dimensions,
+or duration. Subjective or semantic acceptance belongs in
+`.ai/asset-manifest.md`, not in a shell exit code.
 
 ## 5. Three-strike circuit breaker
 
@@ -108,13 +123,30 @@ does not reset the counter.
 
 Codex's `/review` command (a dedicated reviewer that reads a diff and
 produces prioritized, actionable findings) is a good fit for step 3 as
-well — either agent can play "reviewer," the important thing is that
-findings land in `.ai/review.md` so the fixing agent doesn't depend on
-having seen the review conversation directly.
+well — any file-capable agent may be assigned as reviewer; the important
+thing is that findings land in `.ai/review.md` so the fixing agent
+doesn't depend on having seen the review conversation directly.
 
-## 6. Operating principles (both agents, every turn)
+For an optional generated-asset task, insert this bounded branch without
+changing the default stages:
 
-On top of the five collaboration rules above, both AGENTS.md and
+```
+planner:   write asset specification and self-contained prompt in .ai/plan.md
+human:     assign the registered generation agent in .ai/roster.md
+generator: return an image/video without being expected to read local files
+proxy:     place it in assets/generated/ and record the full prompt in asset-manifest.md
+check:     run ./scripts/check.sh for optional mechanical validation
+reviewer:  record accepted/rejected and the reason in asset-manifest.md
+```
+
+If the current writer has `file-access: no`, the previous file-capable
+writer may be named as the sole write proxy. That proxy is a transport
+and recorder only: it may deliver the prompt, place the returned asset,
+and update the manifest, but may not edit product code or broaden scope.
+
+## Operating principles (all agents, every turn)
+
+Independent of the five collaboration rules above, both AGENTS.md and
 CLAUDE.md carry a shared "Operating principles" section that applies
 regardless of which role an agent is playing:
 
@@ -133,7 +165,7 @@ regardless of which role an agent is playing:
 5. Lead with the conclusion — the first sentence answers "what
    happened," details follow.
 
-These exist to keep both agents terse, evidence-based, and
+These exist to keep all agents terse, evidence-based, and
 low-maintenance to supervise — the same failure modes (menu-of-options
 answers, silent scope creep, unverified "looks done" reports) show up
 in both Codex and Claude Code if not explicitly guarded against.

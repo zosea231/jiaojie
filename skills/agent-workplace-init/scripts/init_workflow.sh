@@ -54,6 +54,8 @@ copy_if_absent "$ASSETS_DIR/ai-templates/review.md"             "$TARGET_DIR/.ai
 copy_if_absent "$ASSETS_DIR/ai-templates/backlog.md"            "$TARGET_DIR/.ai/backlog.md"
 copy_if_absent "$ASSETS_DIR/ai-templates/decision-log.md"       "$TARGET_DIR/.ai/decision-log.md"
 copy_if_absent "$ASSETS_DIR/ai-templates/prompts-examples.md"   "$TARGET_DIR/.ai/prompts-examples.md"
+copy_if_absent "$ASSETS_DIR/ai-templates/roster.md"             "$TARGET_DIR/.ai/roster.md"
+copy_if_absent "$ASSETS_DIR/ai-templates/asset-manifest.md"     "$TARGET_DIR/.ai/asset-manifest.md"
 
 chmod +x "$TARGET_DIR/scripts/check.sh" 2>/dev/null || true
 

@@ -20,16 +20,26 @@ every task (especially a new session), actively read:
 3. `.ai/review.md`     — outstanding review findings (if any)
 4. `.ai/backlog.md`    — known non-blocking issues (do NOT fix unless asked)
 5. `.ai/decision-log.md` — why past decisions were made, do not relitigate them
+6. `.ai/roster.md`     — participating agents and the current writer
+7. `.ai/asset-manifest.md` — generated-asset prompts and acceptance state, when applicable
 
 If prior conversation turns and these files disagree, trust the files.
 
 ## Single-writer rule
-Only one agent (Codex or Claude Code) may have write access at any
-given time. Before editing, confirm it's your turn per `.ai/plan.md`
-or explicit human instruction this session. This file describes
-context, not a security policy — if you need a hard, enforced
-restriction (e.g. "never touch src/vendor/"), that must be implemented
-as a Claude Code hook, not just written here.
+At most one agent may exercise local write access at a time. The active
+assignee is the `Current writer` in `.ai/roster.md`; before editing,
+confirm the roster matches the human's instruction for this session.
+
+If the current writer has `file-access: no`, it cannot edit local files.
+The previous file-capable writer may be named as its sole write proxy,
+limited to delivering a self-contained prompt, placing the returned file
+under `assets/generated/`, and recording the result in
+`.ai/asset-manifest.md`. The proxy must not change product code or any
+other files during that handoff.
+
+This file describes context, not a security policy — if you need a hard,
+enforced restriction (e.g. "never touch src/vendor/"), implement it as a
+Claude Code hook, not just prose here.
 
 ## Role scoping (one role per turn)
 Do exactly the role you were asked to do, nothing more:

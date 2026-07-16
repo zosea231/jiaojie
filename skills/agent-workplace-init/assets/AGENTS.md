@@ -19,15 +19,23 @@ At the start of every task, read (in this order):
 3. `.ai/review.md`     — outstanding review findings (if any)
 4. `.ai/backlog.md`    — known non-blocking issues (do NOT fix unless asked)
 5. `.ai/decision-log.md` — why past decisions were made, do not relitigate them
+6. `.ai/roster.md`     — participating agents and the current writer
+7. `.ai/asset-manifest.md` — generated-asset prompts and acceptance state, when applicable
 
 If these files conflict with what you remember from earlier in the
 conversation, the files win.
 
 ## Single-writer rule
-Only one agent may hold write access at a time. Before editing files,
-confirm you are the agent currently assigned to write (per `.ai/plan.md`
-or the human's instruction in this session). If unclear, ask before
-writing.
+At most one agent may exercise local write access at a time. The active
+assignee is the `Current writer` in `.ai/roster.md`; before editing,
+confirm the roster matches the human's instruction for this session.
+
+If the current writer has `file-access: no`, it cannot edit local files.
+The previous file-capable writer may be named as its sole write proxy,
+limited to delivering a self-contained prompt, placing the returned file
+under `assets/generated/`, and recording the result in
+`.ai/asset-manifest.md`. The proxy must not change product code or any
+other files during that handoff.
 
 ## Role scoping (one role per turn)
 Do exactly the role you were asked to do this turn, nothing more:

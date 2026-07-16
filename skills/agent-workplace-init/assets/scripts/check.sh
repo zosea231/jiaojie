@@ -39,4 +39,14 @@ if [ -f "Cargo.toml" ]; then
   cargo test
 fi
 
+# ---------- 可选：图片 / 视频等生成资产 ----------
+# assets/generated/ 是非代码产出目录；配置上面的代码检查时不要把它当作源码输入。
+# 这里仅分发存在性、格式、尺寸、时长等机械校验，不判断内容质量。
+if [ -f ".ai/roster.md" ] && [ -f "scripts/checks/assets.sh" ] && \
+   awk -F '|' 'tolower($4) ~ /generate-(image|video)/ { found=1 } END { exit !found }' \
+     ".ai/roster.md"; then
+  echo "-- Generated asset checks --"
+  bash scripts/checks/assets.sh
+fi
+
 echo "== All checks passed =="

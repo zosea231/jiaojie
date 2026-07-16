@@ -1,4 +1,4 @@
-# 提示词示例：双 Agent 三阶段交接
+# 提示词示例：默认双 Agent 与可选生成式 Agent
 
 ## 场景 A：嵌入式 DMA 修改——阶段 1：Claude Code 规划
 ```
@@ -74,6 +74,41 @@
 
 把发现按 P0/P1/P2 写入 .ai/review.md，每条包含证据位置、影响和可执行的修复要求。若有 P0/P1，状态标为“待修复”并释放写入权，等待人类把一个新的定向修复轮次交给 Codex；若无阻塞问题，标为“通过”并释放写入权。不要在审查轮次直接修代码。
 ```
+
+## 场景 C：接入图片 / 视频生成 Agent——Claude Code 规划与完整闭环
+```
+目标项目：<目标项目根目录>
+生成任务：<图片或视频需求>
+
+本轮只做规划，不生成资产、不修改产品代码。先按既定顺序读取 .ai/ 核心五个文件，
+再读取 .ai/roster.md 和 .ai/asset-manifest.md。确认 Claude Code 是 roster.md
+中的 Current writer，允许写入范围仅为 .ai/plan.md；只有生成 Agent 尚未登记时，
+才额外允许在 .ai/roster.md 增加一行，填写唯一名称、底层模型/工具、
+generate-image 或 generate-video 能力、file-access: no、idle。
+
+请把以下内容写入 .ai/plan.md：
+1. 资产用途、输出路径（assets/generated/<filename>）和明确不做项
+2. 可机械检查的规格：格式、尺寸、文件大小，以及视频时长/编码等
+3. 需要人工或审查 Agent 判断的内容验收标准
+4. 一条交给生成 Agent 的自包含完整 prompt；它不能引用“见项目文件”或依赖
+   对话记忆，必须包含必要背景、画面/镜头要求、禁用项和验收标准
+5. 后续责任人：哪个文件型 Agent 作为 Write proxy 落盘并登记，哪个 Agent
+   独立验收内容
+
+规划完成后释放写入权，等待人类在 roster.md 中把 Current writer 切换到指定
+生成 Agent，并把 Write proxy 指向刚才指定的文件型 Agent；本轮不要开始生成。
+```
+
+执行闭环：
+
+1. 人类把 `.ai/plan.md` 中的完整 prompt 原样交给已登记的生成 Agent。
+2. 生成 Agent 只返回资产；它不需要也不应被要求读取本地文件。
+3. `Write proxy` 只把返回文件放入 `assets/generated/`，并把完整 prompt、
+   输出路径和 `pending` 状态登记到 `.ai/asset-manifest.md`。
+4. 代理只运行 `./scripts/check.sh`；存在 `scripts/checks/assets.sh` 时由统一
+   入口检查存在性、格式、尺寸或时长，并把结果登记回清单。
+5. 人类把写入权交给独立审查 Agent。审查者按计划中的内容标准把该记录标为
+   `accepted`，或标为 `rejected` 并写明打回理由；审查轮不重新生成资产。
 
 ## 通用角色限定提示词模板
 - 只做架构/方案分析，不要修改任何文件。
