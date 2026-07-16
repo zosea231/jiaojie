@@ -13,7 +13,7 @@ required=(
   "$skill_dir/scripts/init_workflow.sh"
   "$skill_dir/references/rules.md"
   "$skill_dir/assets/AGENTS.md" "$skill_dir/assets/CLAUDE.md"
-  "$skill_dir/assets/check.sh"
+  "$skill_dir/assets/scripts/check.sh"
   "$skill_dir/assets/ai-templates/brief.md"
   "$skill_dir/assets/ai-templates/plan.md"
   "$skill_dir/assets/ai-templates/review.md"
@@ -30,6 +30,10 @@ done
 
 test ! -e agent-workplace-init.zip || {
   echo "FAIL: generated ZIP should not be committed at repository root" >&2
+  exit 1
+}
+test ! -e "$skill_dir/assets/check.sh" || {
+  echo "FAIL: check template must live at assets/scripts/check.sh" >&2
   exit 1
 }
 
@@ -66,7 +70,8 @@ if grep -R -E -q '[[:alpha:]]:\\[^[:space:]<]' README.md AGENTS.md CLAUDE.md ski
   exit 1
 fi
 
-bash -n "$skill_dir/scripts/init_workflow.sh" scripts/check.sh "$skill_dir/assets/check.sh"
+bash -n "$skill_dir/scripts/init_workflow.sh" scripts/check.sh \
+  "$skill_dir/assets/scripts/check.sh"
 
 tmp_dir="$(mktemp -d)"
 trap 'rm -rf "$tmp_dir"' EXIT
@@ -82,6 +87,10 @@ for path in AGENTS.md CLAUDE.md scripts/check.sh .ai/brief.md .ai/plan.md \
     exit 1
   }
 done
+test ! -e "$tmp_dir/src" || {
+  echo "FAIL: scaffold created unrelated src/ directory" >&2
+  exit 1
+}
 
 validator="${CODEX_HOME:-$HOME/.codex}/skills/.system/skill-creator/scripts/quick_validate.py"
 if test -f "$validator"; then

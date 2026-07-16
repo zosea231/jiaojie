@@ -26,7 +26,6 @@ project/
 │   ├── backlog.md         # 额外发现的问题
 │   ├── decision-log.md    # 决策记录
 │   └── prompts-examples.md
-└── src/
 ```
 
 ## 协作架构
@@ -57,40 +56,18 @@ flowchart LR
 
 ## 一行安装
 
-推荐用 skills CLI 一次安装到 Codex 和 Claude Code 的用户级目录：
+在终端运行，或让 Agent 执行下面这条命令。它会安装到共享目录，并连接到
+Codex 和 Claude Code：
 
 ```bash
 npx skills add zosea231/agent-workplace-init --skill agent-workplace-init --agent codex claude-code -g -y
 ```
 
-使用 GitHub CLI（`gh skill` 目前为 preview）时，按目标 Agent 安装：
-
-```bash
-# Codex
-gh skill install zosea231/agent-workplace-init agent-workplace-init --agent codex --scope user
-
-# Claude Code
-gh skill install zosea231/agent-workplace-init agent-workplace-init --agent claude-code --scope user
-```
-
-装完可直接对 Agent 说：
+安装完成后，重启对应 Agent 或新开一个会话，然后直接说：
 
 ```text
-使用 $agent-workplace-init 为当前项目初始化 Codex + Claude Code 单写入协作工作区。
+为当前项目初始化 Codex + Claude Code 单写入协作工作区。
 ```
-
-### 手动安装（fallback）
-
-下载或克隆本仓库后，把 `skills/agent-workplace-init/` 复制到目标 Agent 的
-用户级技能目录，确保最终路径是：
-
-```text
-~/.codex/skills/agent-workplace-init/SKILL.md   ✅ 正确
-~/.claude/skills/agent-workplace-init/SKILL.md ✅ 正确
-```
-
-安装完成后，**重启 Codex CLI / Claude Code**（或开一个新会话）。Codex 可以
-用 `/skills` 查看已识别的 skill 列表进行确认。
 
 ## 使用
 
@@ -100,28 +77,8 @@ gh skill install zosea231/agent-workplace-init agent-workplace-init --agent clau
 > "给这个仓库初始化 AGENTS.md / CLAUDE.md 和 .ai 目录"
 > "我想让两个 agent 协作开发但不要互相踩踏，怎么设置"
 
-Codex / Claude Code 会自动识别到这个 skill 并调用内置脚本完成一键搭建。也
-可以手动直接运行（换成你实际安装的路径）：
-
-```bash
-# 如果装在 Codex
-bash ~/.codex/skills/agent-workplace-init/scripts/init_workflow.sh /path/to/your/project
-
-# 如果装在 Claude Code
-bash ~/.claude/skills/agent-workplace-init/scripts/init_workflow.sh /path/to/your/project
-```
-
-脚本对已存在的文件不会覆盖，可以放心在老项目上重复运行来补齐缺失文件。
-
-## 更新
-
-```bash
-# Codex
-cd ~/.codex/skills/agent-workplace-init && git pull
-
-# Claude Code
-cd ~/.claude/skills/agent-workplace-init && git pull
-```
+Codex / Claude Code 可以根据这个意图调用 Skill，并用内置脚本完成搭建。已有
+文件不会被覆盖，可以在老项目上重复运行来补齐缺失文件。
 
 ## 目录结构（本仓库自身）
 
@@ -137,13 +94,32 @@ agent-workplace-init/
 ├── scripts/
 │   └── check.sh                # 本仓库自己的唯一验证入口
 └── skills/
-    └── agent-workplace-init/   # 可被 npx skills / gh skill 发现的 Skill
+    └── agent-workplace-init/   # 可安装的 Skill 包
         ├── SKILL.md
-        ├── agents/openai.yaml
-        ├── scripts/init_workflow.sh
-        ├── references/rules.md
-        └── assets/             # 会被复制到目标项目里的模板文件
+        ├── agents/
+        │   └── openai.yaml     # Codex 展示元数据与默认提示词
+        ├── assets/             # 只包含会写入目标项目的模板
+        │   ├── AGENTS.md
+        │   ├── CLAUDE.md
+        │   ├── scripts/
+        │   │   └── check.sh
+        │   └── ai-templates/
+        │       ├── brief.md
+        │       ├── plan.md
+        │       ├── review.md
+        │       ├── backlog.md
+        │       ├── decision-log.md
+        │       └── prompts-examples.md
+        ├── references/
+        │   └── rules.md        # 协作规则的设计依据与边界说明
+        └── scripts/
+            └── init_workflow.sh
 ```
+
+根目录的 `AGENTS.md`、`CLAUDE.md` 和 `.ai/` 是本仓库使用自身 Skill 的
+工作副本；`skills/agent-workplace-init/assets/` 中的同名文件才是安装到目标
+项目的模板源。两层文件用途不同，`scripts/check.sh` 会校验它们保持同步，并
+要求提交到仓库的 `.ai/` 文件恢复为干净的初始模板。
 
 ## License
 

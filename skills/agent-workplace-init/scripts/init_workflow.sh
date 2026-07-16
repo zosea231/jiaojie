@@ -31,7 +31,7 @@ if [ ! -d "$ASSETS_DIR" ]; then
   exit 1
 fi
 
-mkdir -p "$TARGET_DIR/.ai" "$TARGET_DIR/scripts" "$TARGET_DIR/src"
+mkdir -p "$TARGET_DIR/.ai" "$TARGET_DIR/scripts"
 
 # ---------- 工具函数：仅在目标文件不存在时才复制，避免覆盖 ----------
 copy_if_absent() {
@@ -47,7 +47,7 @@ copy_if_absent() {
 
 copy_if_absent "$ASSETS_DIR/AGENTS.md"                          "$TARGET_DIR/AGENTS.md"
 copy_if_absent "$ASSETS_DIR/CLAUDE.md"                          "$TARGET_DIR/CLAUDE.md"
-copy_if_absent "$ASSETS_DIR/check.sh"                           "$TARGET_DIR/scripts/check.sh"
+copy_if_absent "$ASSETS_DIR/scripts/check.sh"                   "$TARGET_DIR/scripts/check.sh"
 copy_if_absent "$ASSETS_DIR/ai-templates/brief.md"              "$TARGET_DIR/.ai/brief.md"
 copy_if_absent "$ASSETS_DIR/ai-templates/plan.md"               "$TARGET_DIR/.ai/plan.md"
 copy_if_absent "$ASSETS_DIR/ai-templates/review.md"             "$TARGET_DIR/.ai/review.md"
