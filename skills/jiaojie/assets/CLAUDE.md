@@ -34,8 +34,12 @@ so no lock is needed. Your job is simpler than that:
   "sync progress to the handoff docs" / "把这轮结论写入文档"，stop
   what you're doing and write a sync update following
   `references/sync-rules.md` before responding further.
+- At the natural end of a stage, follow the same sync rules, tell the
+  human what changed, and stop so the human can choose the next agent.
 - Never assume the next agent remembers this conversation — if it's
   not written in `.ai/`, it doesn't exist for them.
+- Do not proceed to the next agent's role (for example, do not review
+  your own diff as if you were the independent reviewer).
 
 ## Role scoping (one role per turn)
 Do exactly the role you were asked to do, nothing more:
@@ -67,9 +71,3 @@ Do not introduce dynamic allocation in low-level drivers unless
 explicitly approved.
 Do not change public protocol behavior without documenting it in
 `.ai/decision-log.md`.
-
-## Handoff
-At the natural end of a stage, or when the human explicitly requests a
-sync, follow `references/sync-rules.md`, update the relevant `.ai/` files,
-and stop. Do not proceed to the next agent's role (e.g. do not review
-your own diff as if you were the reviewer).

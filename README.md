@@ -27,6 +27,10 @@ Agent。Skill ID、安装目录和显式调用名均为 `jiaojie`。
 npx skills add zosea231/jiaojie --skill jiaojie --agent codex claude-code -g -y
 ```
 
+本项目刻意只维护这一条标准 Skill 安装通道，不提供
+`.claude-plugin/marketplace.json` 或 `plugins/jiaojie/` 镜像，避免两份包结构
+长期漂移。
+
 安装后重启对应 Agent 或新开会话，然后直接说：
 
 ```text

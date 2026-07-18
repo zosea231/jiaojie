@@ -40,6 +40,14 @@ test ! -e skills/agent-workplace-init || {
   echo "FAIL: old skill directory still exists" >&2
   exit 1
 }
+test ! -e .claude-plugin/marketplace.json || {
+  echo "FAIL: Jiaojie intentionally uses the standard Skill install channel only" >&2
+  exit 1
+}
+test ! -e plugins/jiaojie || {
+  echo "FAIL: duplicate plugin packaging would create a second maintenance surface" >&2
+  exit 1
+}
 test ! -e "$skill_dir/assets/check.sh" || {
   echo "FAIL: check template must live at assets/scripts/check.sh" >&2
   exit 1

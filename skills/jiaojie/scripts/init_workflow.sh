@@ -70,11 +70,7 @@ else
 fi
 
 echo ""
-echo "下一步："
-echo "1. 编辑 scripts/check.sh，取消注释匹配你技术栈的检查命令"
-echo "2. 填写 .ai/brief.md，写清楚当前任务目标"
-echo "3. 让 Claude Code 读取 .ai/brief.md，输出方案到 .ai/plan.md"
-echo "4. 让 Codex 读取 .ai/plan.md 实现，并跑 scripts/check.sh"
-echo "5. 让 Claude Code 审查 diff，写 .ai/review.md"
-echo "6. 让 Codex 只修 review 中的 P0/P1，重新跑 check.sh"
-echo "7. 人工审核合并"
+echo "接下来："
+echo "先填写 .ai/brief.md，再让 Claude Code 读取 .ai/ 做规划。"
+echo "首次使用前，请按项目技术栈调整 scripts/check.sh。"
+echo "需要切换 Agent 时，说‘同步进度到交接文档’，同步后由你决定下一位 Agent。"
