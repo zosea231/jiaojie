@@ -1,4 +1,4 @@
-<!-- Repository self-hosting copy. Installed template: skills/agent-workplace-init/assets/AGENTS.md -->
+<!-- Repository self-hosting copy. Installed template: skills/jiaojie/assets/AGENTS.md -->
 
 # Project Rules (for Codex)
 
@@ -21,23 +21,23 @@ At the start of every task, read (in this order):
 3. `.ai/review.md`     — outstanding review findings (if any)
 4. `.ai/backlog.md`    — known non-blocking issues (do NOT fix unless asked)
 5. `.ai/decision-log.md` — why past decisions were made, do not relitigate them
-6. `.ai/roster.md`     — participating agents and the current writer
+6. `.ai/roster.md`     — participating agents and their capabilities
 7. `.ai/asset-manifest.md` — generated-asset prompts and acceptance state, when applicable
 
 If these files conflict with what you remember from earlier in the
 conversation, the files win.
 
-## Single-writer rule
-At most one agent may exercise local write access at a time. The active
-assignee is the `Current writer` in `.ai/roster.md`; before editing,
-confirm the roster matches the human's instruction for this session.
-
-If the current writer has `file-access: no`, it cannot edit local files.
-The previous file-capable writer may be named as its sole write proxy,
-limited to delivering a self-contained prompt, placing the returned file
-under `assets/generated/`, and recording the result in
-`.ai/asset-manifest.md`. The proxy must not change product code or any
-other files during that handoff.
+## Handoff is human-orchestrated, not locked
+Only one agent works at a time because the human only talks to one of
+you at a time — there is no concurrent-write scenario to guard against,
+so no lock is needed. Your job is simpler than that:
+- At the start of every task, read `.ai/` fresh (see above).
+- When the human says something like "同步进度到交接文档" /
+  "sync progress to the handoff docs" / "把这轮结论写入文档"，stop
+  what you're doing and write a sync update following
+  `references/sync-rules.md` before responding further.
+- Never assume the next agent remembers this conversation — if it's
+  not written in `.ai/`, it doesn't exist for them.
 
 ## Role scoping (one role per turn)
 Do exactly the role you were asked to do this turn, nothing more:
@@ -72,7 +72,7 @@ Do not change public protocol behavior without documenting it in
 `.ai/decision-log.md`.
 
 ## Handoff
-When your task is done and checks pass, update `.ai/plan.md` /
-`.ai/review.md` with status, and stop. Do not proceed to the next
-agent's role (e.g. do not review your own diff as if you were the
-reviewer).
+At the natural end of a stage, or when the human explicitly requests a
+sync, follow `references/sync-rules.md`, update the relevant `.ai/` files,
+and stop. Do not proceed to the next agent's role (e.g. do not review
+your own diff as if you were the reviewer).

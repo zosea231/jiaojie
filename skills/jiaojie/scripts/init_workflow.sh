@@ -27,11 +27,11 @@ echo ""
 
 if [ ! -d "$ASSETS_DIR" ]; then
   echo "❌ 找不到模板目录：$ASSETS_DIR"
-  echo "   请确认 agent-workplace-init skill 安装完整（应包含 assets/ 子目录）。"
+  echo "   请确认 jiaojie skill 安装完整（应包含 assets/ 子目录）。"
   exit 1
 fi
 
-mkdir -p "$TARGET_DIR/.ai" "$TARGET_DIR/scripts"
+mkdir -p "$TARGET_DIR/.ai" "$TARGET_DIR/scripts" "$TARGET_DIR/references"
 
 # ---------- 工具函数：仅在目标文件不存在时才复制，避免覆盖 ----------
 copy_if_absent() {
@@ -56,6 +56,7 @@ copy_if_absent "$ASSETS_DIR/ai-templates/decision-log.md"       "$TARGET_DIR/.ai
 copy_if_absent "$ASSETS_DIR/ai-templates/prompts-examples.md"   "$TARGET_DIR/.ai/prompts-examples.md"
 copy_if_absent "$ASSETS_DIR/ai-templates/roster.md"             "$TARGET_DIR/.ai/roster.md"
 copy_if_absent "$ASSETS_DIR/ai-templates/asset-manifest.md"     "$TARGET_DIR/.ai/asset-manifest.md"
+copy_if_absent "$SKILL_DIR/references/sync-rules.md"            "$TARGET_DIR/references/sync-rules.md"
 
 chmod +x "$TARGET_DIR/scripts/check.sh" 2>/dev/null || true
 

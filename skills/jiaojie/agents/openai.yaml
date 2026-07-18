@@ -1,0 +1,4 @@
+interface:
+  display_name: "Jiaojie"
+  short_description: "Set up human-orchestrated agent handoffs"
+  default_prompt: "Use $jiaojie to initialize this project with human-orchestrated Codex and Claude Code handoffs."

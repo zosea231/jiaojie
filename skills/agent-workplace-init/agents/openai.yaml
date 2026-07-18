@@ -1,4 +1,0 @@
-interface:
-  display_name: "Agent Workplace Init"
-  short_description: "AWI: Initialize an extensible single-writer workplace"
-  default_prompt: "Use $agent-workplace-init (AWI) to initialize this project with the default Codex and Claude Code workflow and optional specialized agents."

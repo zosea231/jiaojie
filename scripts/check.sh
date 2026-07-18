@@ -3,15 +3,16 @@ set -euo pipefail
 
 cd "$(dirname "${BASH_SOURCE[0]}")/.."
 
-echo "== Checking agent-workplace-init =="
+echo "== Checking jiaojie =="
 
-skill_dir="skills/agent-workplace-init"
+skill_dir="skills/jiaojie"
 
 required=(
   README.md LICENSE AGENTS.md CLAUDE.md scripts/check.sh
+  references/sync-rules.md
   "$skill_dir/SKILL.md" "$skill_dir/agents/openai.yaml"
   "$skill_dir/scripts/init_workflow.sh"
-  "$skill_dir/references/rules.md"
+  "$skill_dir/references/rules.md" "$skill_dir/references/sync-rules.md"
   "$skill_dir/assets/AGENTS.md" "$skill_dir/assets/CLAUDE.md"
   "$skill_dir/assets/scripts/check.sh"
   "$skill_dir/assets/ai-templates/brief.md"
@@ -31,8 +32,12 @@ for path in "${required[@]}"; do
   test -f "$path" || { echo "FAIL: missing $path" >&2; exit 1; }
 done
 
-test ! -e agent-workplace-init.zip || {
+test ! -e jiaojie.zip || {
   echo "FAIL: generated ZIP should not be committed at repository root" >&2
+  exit 1
+}
+test ! -e skills/agent-workplace-init || {
+  echo "FAIL: old skill directory still exists" >&2
   exit 1
 }
 test ! -e "$skill_dir/assets/check.sh" || {
@@ -62,16 +67,20 @@ for name in brief plan review backlog decision-log prompts-examples roster asset
     exit 1
   }
 done
+cmp -s references/sync-rules.md "$skill_dir/references/sync-rules.md" || {
+  echo "FAIL: repository sync rules differ from the skill copy" >&2
+  exit 1
+}
 
-grep -q '^name: agent-workplace-init$' "$skill_dir/SKILL.md"
+grep -q '^name: jiaojie$' "$skill_dir/SKILL.md"
 grep -q '^description:' "$skill_dir/SKILL.md"
-grep -q '^# AWI · Agent Workplace Init$' README.md
-grep -q '^> 给多个 AI Agent 一套不会互相踩踏的工作协议。$' README.md
-grep -q '^# AWI · Agent Workplace Init$' "$skill_dir/SKILL.md"
-grep -q 'The shorthand AWI also triggers this skill' "$skill_dir/SKILL.md"
-grep -q 'display_name: "Agent Workplace Init"' "$skill_dir/agents/openai.yaml"
-grep -q '\$agent-workplace-init' "$skill_dir/agents/openai.yaml"
+grep -q '^# Jiaojie$' README.md
+grep -q '^# Jiaojie$' "$skill_dir/SKILL.md"
+grep -q 'display_name: "Jiaojie"' "$skill_dir/agents/openai.yaml"
+grep -q '\$jiaojie' "$skill_dir/agents/openai.yaml"
 grep -q 'Three-strike circuit breaker' "$skill_dir/SKILL.md"
+grep -q 'Handoff is human-orchestrated, not locked' "$skill_dir/assets/AGENTS.md"
+grep -q 'Handoff is human-orchestrated, not locked' "$skill_dir/assets/CLAUDE.md"
 grep -q '声学定位算法改进' "$skill_dir/assets/ai-templates/prompts-examples.md"
 grep -q 'Stage 1 — Claude Code: plan and choose the route' "$skill_dir/SKILL.md"
 grep -q 'Stage 2 — Codex: implement and check' "$skill_dir/SKILL.md"
@@ -82,8 +91,14 @@ grep -q '阶段 3：Claude Code 独立审查' "$skill_dir/assets/ai-templates/pr
 grep -q '场景 C：接入图片 / 视频生成 Agent' "$skill_dir/assets/ai-templates/prompts-examples.md"
 grep -q 'generate-(image|video)' "$skill_dir/assets/scripts/check.sh"
 
-if grep -R -E -q '[[:alpha:]]:\\[^[:space:]<]' README.md AGENTS.md CLAUDE.md skills .ai; then
+if grep -R -E -q '[[:alpha:]]:\\[^[:space:]<]' README.md AGENTS.md CLAUDE.md skills .ai references; then
   echo 'FAIL: public docs or templates contain a Windows absolute path' >&2
+  exit 1
+fi
+
+if grep -R -E -i -q 'Current writer|Locked since|Write proxy|释放写入权|写入权|require-lock|agent-lock' \
+  AGENTS.md CLAUDE.md skills .ai references; then
+  echo 'FAIL: legacy lock or scheduling language remains' >&2
   exit 1
 fi
 
@@ -96,7 +111,8 @@ bash "$skill_dir/scripts/init_workflow.sh" "$tmp_dir" >/dev/null
 printf '\nPRESERVE_EXISTING_FILE\n' >> "$tmp_dir/AGENTS.md"
 bash "$skill_dir/scripts/init_workflow.sh" "$tmp_dir" >/dev/null
 grep -q 'PRESERVE_EXISTING_FILE' "$tmp_dir/AGENTS.md"
-for path in AGENTS.md CLAUDE.md scripts/check.sh .ai/brief.md .ai/plan.md \
+for path in AGENTS.md CLAUDE.md scripts/check.sh references/sync-rules.md \
+  .ai/brief.md .ai/plan.md \
   .ai/review.md .ai/backlog.md .ai/decision-log.md \
   .ai/prompts-examples.md .ai/roster.md .ai/asset-manifest.md; do
   test -f "$tmp_dir/$path" || {
@@ -104,6 +120,10 @@ for path in AGENTS.md CLAUDE.md scripts/check.sh .ai/brief.md .ai/plan.md \
     exit 1
   }
 done
+test ! -e "$tmp_dir/.claude/settings.json"
+test ! -e "$tmp_dir/.codex/hooks.json"
+test ! -e "$tmp_dir/scripts/hooks/require-lock.sh"
+test ! -e "$tmp_dir/assets/scripts/agent-lock.sh"
 test ! -e "$tmp_dir/src" || {
   echo "FAIL: scaffold created unrelated src/ directory" >&2
   exit 1
