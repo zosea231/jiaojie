@@ -74,21 +74,22 @@ flowchart LR
 
 ```text
 project/
-├── AGENTS.md
-├── CLAUDE.md
+├── AGENTS.md                    # Codex 项目规则
+├── CLAUDE.md                    # Claude Code 项目规则
 ├── references/
-│   └── sync-rules.md
+│   └── sync-rules.md            # 交接同步的写作规则（怎么写才能让下一个 Agent 读懂）
 ├── scripts/
-│   └── check.sh
+│   ├── check.sh                 # 统一验证入口（唯一允许运行的检查命令）
+│   └── checks/                  # 可选，任务专属验收；按需创建，存在时调用，不进常驻主流程
 └── .ai/
-    ├── brief.md
-    ├── plan.md
-    ├── review.md
-    ├── backlog.md
-    ├── decision-log.md
-    ├── prompts-examples.md
-    ├── roster.md
-    └── asset-manifest.md
+    ├── brief.md                 # 任务目标
+    ├── plan.md                  # 设计方案 + 验收标准
+    ├── review.md                # 审查意见（P0/P1/P2）
+    ├── backlog.md               # 发现但本次不处理的问题
+    ├── decision-log.md          # 为什么这样做
+    ├── prompts-examples.md      # 交接提示词示例
+    ├── roster.md                # 参与 Agent 花名册
+    └── asset-manifest.md        # 生成资产（图片/视频）登记表
 ```
 
 已有文件不会被覆盖，因此可以在现有项目中重复运行初始化脚本以补齐缺失文件。
@@ -98,12 +99,12 @@ project/
 
 在 `.ai/roster.md` 增加一行并填写 `generate-image` 或
 `generate-video` 能力。不能读取项目文件的 Agent 由文件型 Agent 为其准备
-自包含 prompt；生成后，人类切回文件型 Agent，将资产放入
-`assets/generated/` 并把完整 prompt、路径和验收状态追加到
-`.ai/asset-manifest.md`。
+自包含 prompt；生成后，人类切回文件型 Agent，负责资产落盘，并把完整
+prompt、路径和验收状态追加到 `.ai/asset-manifest.md`。
 
 内容质量由人类或独立审查 Agent 判断。若项目提供
 `scripts/checks/assets.sh`，统一入口只检查存在性、格式、尺寸或时长。
+生成的资产会落在 `assets/generated/`（首次生成时才创建）。
 
 ## 仓库结构
 
@@ -113,17 +114,25 @@ jiaojie/
 ├── AGENTS.md                    # 仓库自用规则副本
 ├── CLAUDE.md                    # 仓库自用规则副本
 ├── references/
-│   └── sync-rules.md
+│   └── sync-rules.md            # 仓库自用的运行时同步规则
 ├── scripts/
 │   └── check.sh                 # 仓库验证入口
 └── skills/
     └── jiaojie/                 # 可安装的 Skill 包
-        ├── SKILL.md
-        ├── agents/openai.yaml
-        ├── assets/
+        ├── SKILL.md             # 触发条件与操作步骤（Agent 实际读取的入口）
+        ├── agents/openai.yaml   # Codex 专属展示配置
+        ├── assets/              # 会被复制进目标项目的模板，改这里才是改真正的产出物
+        │   ├── AGENTS.md / CLAUDE.md  # 对应目标项目根目录的同名规则
+        │   ├── ai-templates/*.md      # 对应目标项目 .ai/ 下的 8 个文件
+        │   └── scripts/check.sh       # 对应目标项目 scripts/check.sh
         ├── references/
-        └── scripts/init_workflow.sh
+        │   ├── rules.md         # 设计原理与取舍说明（给维护者看，不进目标项目）
+        │   └── sync-rules.md    # 运行时同步规则（会被复制进目标项目）
+        └── scripts/init_workflow.sh  # 一键搭建脚手架的入口脚本
 ```
+
+`references/rules.md` 只存在于 Skill 包内，是设计说明文档，不参与自举同步；
+`sync-rules.md` 是运行时规则，在 Skill 包与仓库根目录两处保持一致。
 
 根目录的自用规则和 `.ai/` 模板会由 `scripts/check.sh` 与
 `skills/jiaojie/assets/` 对账，防止仓库说明与实际安装产物漂移。
