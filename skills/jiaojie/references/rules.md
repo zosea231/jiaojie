@@ -66,10 +66,14 @@ outside the current role in `.ai/backlog.md`; do not silently fix them.
 after edits. This gives every agent and the human directly comparable
 results and closes the change → check → fix loop.
 
+规划或审查阶段确定验收标准时，若 `check.sh` 尚未覆盖对应检查，追加一段
+条件化的检查（复用 `scripts/checks/<name>.sh` 的按需 dispatch 模式，不要
+写进总是执行的主流程），并在 `.ai/decision-log.md` 记一行原因；若已覆盖，
+不要重新评估或重写现有内容。
+
 Generated assets use the same entrypoint for optional mechanical checks. If
-`scripts/checks/assets.sh` exists and the roster includes an image/video
-capability, `check.sh` may verify existence, decodability, dimensions, or
-duration. Subjective content acceptance belongs in
+`scripts/checks/assets.sh` exists, `check.sh` runs it to verify existence,
+decodability, dimensions, or duration. Subjective content acceptance belongs in
 `.ai/asset-manifest.md`. The check script must not inspect or enforce
 handoff synchronization.
 

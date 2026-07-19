@@ -11,6 +11,8 @@ to the handoff docs"/"更新交接文档"时，立即执行本规则，而不是
    - 任务目标变化/明确 → `.ai/brief.md`
    - 方案/设计决策、最小修改建议 → `.ai/plan.md`，同时更新状态勾选项
    - 审查发现（分 P0/P1/P2） → `.ai/review.md`，同时更新状态
+   - 新增的任务专属验收标准 → 追加 `scripts/checks/<name>.sh`（不改主流程），
+     并在 `.ai/decision-log.md` 记一行原因
    - 发现但本次不处理的问题 → `.ai/backlog.md`（追加一行，不要覆盖旧记录）
    - 非显而易见的"为什么这样做" → `.ai/decision-log.md`（追加新条目，
      不要修改或删除已有条目）

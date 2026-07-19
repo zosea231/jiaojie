@@ -55,6 +55,10 @@ Make the smallest safe change.
 Do not refactor unrelated code.
 After editing, run `./scripts/check.sh`. This is the ONLY validation
 entry point — do not invent or guess your own test/lint/build commands.
+If this task's acceptance criteria aren't covered by `./scripts/check.sh`
+yet, add a new `scripts/checks/<name>.sh` (never rewrite existing checks
+or the always-run main flow) and log why in `.ai/decision-log.md`. If
+they're already covered, don't re-evaluate or touch the file.
 If checks fail, fix only the failure introduced by this task.
 If the same root-cause failure occurs in three consecutive check runs,
 stop editing and re-running checks. Mark the task blocked in

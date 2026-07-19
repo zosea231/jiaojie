@@ -8,8 +8,11 @@ set -e
 
 echo "== Running unified checks =="
 
+stack_detected=0
+
 # ---------- Python 项目示例 ----------
 if [ -f "pyproject.toml" ] || [ -f "requirements.txt" ]; then
+  stack_detected=1
   echo "-- Python project detected --"
   uv run pytest
   uv run ruff check .
@@ -18,6 +21,7 @@ fi
 
 # ---------- Node / TypeScript 项目示例 ----------
 if [ -f "package.json" ]; then
+  stack_detected=1
   echo "-- Node project detected --"
   npm run lint
   npm run typecheck --if-present
@@ -26,6 +30,7 @@ fi
 
 # ---------- 嵌入式 / C / CMake 项目示例 ----------
 if [ -f "CMakeLists.txt" ]; then
+  stack_detected=1
   echo "-- CMake project detected --"
   cmake --build build
   ctest --test-dir build
@@ -33,20 +38,25 @@ fi
 
 # ---------- Rust 项目示例 ----------
 if [ -f "Cargo.toml" ]; then
+  stack_detected=1
   echo "-- Rust project detected --"
   cargo check
   cargo clippy -- -D warnings
   cargo test
 fi
 
-# ---------- 可选：图片 / 视频等生成资产 ----------
-# assets/generated/ 是非代码产出目录；配置上面的代码检查时不要把它当作源码输入。
-# 这里仅分发存在性、格式、尺寸、时长等机械校验，不判断内容质量。
-if [ -f ".ai/roster.md" ] && [ -f "scripts/checks/assets.sh" ] && \
-   awk -F '|' 'tolower($4) ~ /generate-(image|video)/ { found=1 } END { exit !found }' \
-     ".ai/roster.md"; then
-  echo "-- Generated asset checks --"
-  bash scripts/checks/assets.sh
+# 任务专属验收标准：按需 dispatch，不进入总是执行的主流程
+if [ -d "scripts/checks" ]; then
+  for task_check in scripts/checks/*.sh; do
+    [ -e "$task_check" ] || continue
+    echo "-- Task-specific check: $(basename "$task_check") --"
+    bash "$task_check" || { echo "FAIL: $task_check" >&2; exit 1; }
+  done
+fi
+
+if [ "$stack_detected" -eq 0 ]; then
+  echo "FAIL: no supported project stack detected; customize scripts/check.sh before use" >&2
+  exit 1
 fi
 
 echo "== All checks passed =="

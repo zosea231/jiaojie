@@ -97,7 +97,13 @@ grep -q '阶段 1：Claude Code 规划与路线选择' "$skill_dir/assets/ai-tem
 grep -q '阶段 2：Codex 实施与检查' "$skill_dir/assets/ai-templates/prompts-examples.md"
 grep -q '阶段 3：Claude Code 独立审查' "$skill_dir/assets/ai-templates/prompts-examples.md"
 grep -q '场景 C：接入图片 / 视频生成 Agent' "$skill_dir/assets/ai-templates/prompts-examples.md"
-grep -q 'generate-(image|video)' "$skill_dir/assets/scripts/check.sh"
+grep -F -q 'for task_check in scripts/checks/*.sh' "$skill_dir/assets/scripts/check.sh"
+grep -F -q 'scripts/checks/<name>.sh' "$skill_dir/references/rules.md"
+grep -F -q 'scripts/checks/<name>.sh' "$skill_dir/references/sync-rules.md"
+grep -F -q 'scripts/checks/<name>.sh' "$skill_dir/assets/AGENTS.md"
+grep -F -q 'scripts/checks/<name>.sh' "$skill_dir/assets/CLAUDE.md"
+grep -F -q 'scripts/checks/<name>.sh' "$skill_dir/assets/ai-templates/plan.md"
+grep -F -q 'scripts/checks/<name>.sh' "$skill_dir/assets/ai-templates/review.md"
 
 if grep -R -E -q '[[:alpha:]]:\\[^[:space:]<]' README.md AGENTS.md CLAUDE.md skills .ai references; then
   echo 'FAIL: public docs or templates contain a Windows absolute path' >&2
@@ -136,20 +142,49 @@ test ! -e "$tmp_dir/src" || {
   echo "FAIL: scaffold created unrelated src/ directory" >&2
   exit 1
 }
-
-mkdir -p "$tmp_dir/scripts/checks"
-printf '%s\n' '| image-gen-01 | image model | generate-image | no | idle |' \
-  >> "$tmp_dir/.ai/roster.md"
-cat > "$tmp_dir/scripts/checks/assets.sh" <<'EOF'
-#!/usr/bin/env bash
-set -e
-touch .asset-check-ran
-EOF
-(cd "$tmp_dir" && bash scripts/check.sh >/dev/null)
-test -f "$tmp_dir/.asset-check-ran" || {
-  echo "FAIL: unified check did not dispatch generated asset checks" >&2
+test ! -e "$tmp_dir/scripts/checks" || {
+  echo "FAIL: scaffold created task-specific checks by default" >&2
   exit 1
 }
+
+if (cd "$tmp_dir" && bash scripts/check.sh >unknown-stack.log 2>&1); then
+  echo "FAIL: unified check accepted an unknown project stack" >&2
+  exit 1
+fi
+grep -q 'FAIL: no supported project stack detected' "$tmp_dir/unknown-stack.log" || {
+  echo "FAIL: unified check did not report the unknown project stack" >&2
+  exit 1
+}
+rm "$tmp_dir/unknown-stack.log"
+
+mkdir -p "$tmp_dir/.test-bin"
+cat > "$tmp_dir/Cargo.toml" <<'EOF'
+[package]
+name = "jiaojie-check-fixture"
+version = "0.1.0"
+edition = "2021"
+EOF
+cat > "$tmp_dir/.test-bin/cargo" <<'EOF'
+#!/usr/bin/env bash
+exit 0
+EOF
+chmod +x "$tmp_dir/.test-bin/cargo"
+
+mkdir -p "$tmp_dir/scripts/checks"
+cat > "$tmp_dir/scripts/checks/dummy.sh" <<'EOF'
+#!/usr/bin/env bash
+exit 1
+EOF
+if (cd "$tmp_dir" && PATH="$tmp_dir/.test-bin:$PATH" bash scripts/check.sh >task-check.log 2>&1); then
+  echo "FAIL: unified check ignored a failing task-specific check" >&2
+  exit 1
+fi
+grep -q 'FAIL: scripts/checks/dummy.sh' "$tmp_dir/task-check.log" || {
+  echo "FAIL: unified check did not report the failing task-specific check" >&2
+  exit 1
+}
+rm "$tmp_dir/scripts/checks/dummy.sh" "$tmp_dir/task-check.log"
+(cd "$tmp_dir" && PATH="$tmp_dir/.test-bin:$PATH" bash scripts/check.sh >/dev/null)
 
 validator="${CODEX_HOME:-$HOME/.codex}/skills/.system/skill-creator/scripts/quick_validate.py"
 if test -f "$validator"; then
