@@ -10,6 +10,7 @@ Build a project that a new agent can quickly understand and continue. The defaul
 ## Core defaults
 
 - **Codex readability and modular design:** keep stable entrypoints, clear file responsibilities, explicit dependencies, and a concise content index. Split mixed responsibilities as the active work reaches them, control complexity, and introduce no circular dependencies. Keep architecture maintenance bounded by the task.
+- **Task context and dependencies:** keep a short shared goal and route, then use `.ai/index.md` to load the current task's inputs and module evidence. Keep task dependencies, outputs, acceptance, and next actions in `.ai/plan.md`; link to source material instead of duplicating it.
 - **Current context:** keep the goal, core route, current stage, effective decisions, unresolved work, and evidence entrypoints in `.ai/`. Update facts in place; remove stale, duplicated, or route-divergent records. Detailed evidence stays in its source directory.
 - **Direct writing:** apply [references/writing-rules.md](references/writing-rules.md) to documentation, reports, comments, and delivery packaging. It integrates the bundled [Anti-Defensive Writing skill](references/anti-defensive-writing.md), including its evidence and precision requirements. Read the bundled text when drafting or revising prose; no separate installation or network request is needed.
 - **Proportionate safeguards:** 默认不新增 hash、不冻结 contract、不建 baseline、不加 gate。只有说清具体失败场景，并解释为什么 Git、版本号、主键、事务、唯一约束、类型、普通测试全都挡不住它，才允许增加。已有安全措施一个不删；认证、数据安全、不可逆操作和正式发布继续按项目要求处理。
@@ -28,7 +29,11 @@ For an existing project, or when the user asks to apply the latest skill rules, 
 
 ## Read and maintain context
 
-At each task start read `.ai/brief.md` → `.ai/plan.md` → `.ai/review.md` → `.ai/backlog.md` → `.ai/decision-log.md` → `.ai/roster.md` → `.ai/index.md`. Read `.ai/asset-manifest.md` when assets are involved. The latest user instruction takes precedence; otherwise current files take precedence over conversation memory.
+At each task start follow `AGENTS.md`, then read `.ai/brief.md`, the overview and current task in `.ai/plan.md`, and relevant entries in `.ai/index.md`. Keep the plan overview short: route, stage, current task, shared constraints or blocking-review links, and next action. Use stable task headings and the index to select sections rather than loading every handoff file in full. The latest user instruction takes precedence; otherwise current files take precedence over conversation memory.
+
+Expand context by role and scope: read relevant review findings for implementation, review, or fixes; effective decisions for affected modules or route choices; backlog entries when they affect scope or are requested; the roster when roles or access matter; and the asset manifest when assets are involved. Read module entrypoints and original evidence needed for the task. Reviewers inspect actual changes and source evidence; Workbuddy uses adopted results and supporting sources. If routing is incomplete, inspect headings and directories, then expand the relevant reading.
+
+For each real task, record its goal/scope, linked inputs, prerequisites where present, output destination, implementation/review roles, acceptance evidence, status, and next action in `.ai/plan.md`. A small task can use one short section. Link related tasks by stable name; keep detailed module context beside the module or in existing references. When upstream inputs, interfaces, or conclusions change, identify affected downstream work and mark the relevant results for reassessment, with reasons. Keep task status in the plan and source records; the index is navigation. See [references/sync-rules.md](references/sync-rules.md) for maintenance.
 
 Update affected status, decisions, and index entries during development. When the user asks to sync, or a stage finishes, follow [references/sync-rules.md](references/sync-rules.md), report the state, and stop for the human to choose the next role. Apply the writing rules to these records too.
 
@@ -38,11 +43,11 @@ The human selects the current session and role. The roster records capabilities 
 
 ### Stage 1 — Planner: plan and choose the route
 
-Astra, or the assigned planner, reads project evidence and writes an implementable `.ai/plan.md`: core route, current scope, module boundaries, acceptance criteria, and next action. It synchronizes effective decisions and stops without implementing product code.
+Astra, or the assigned planner, reads project evidence and writes an implementable `.ai/plan.md`: a short shared overview and task sections with inputs, dependencies, outputs, module boundaries, acceptance, and next action. It synchronizes effective decisions and stops without implementing product code.
 
 ### Stage 2 — Implementer: implement and check
 
-Sol, or the assigned implementer, reads the plan, implements the authorized scope, and runs `./scripts/check.sh`. Record out-of-scope findings in the backlog and significant rationale in the decision log. Synchronize state as implemented, pending review, then stop. An author's checks are not an independent review.
+Sol, or the assigned implementer, reads the current task and its linked inputs, implements the authorized scope, and runs `./scripts/check.sh`. Record affected downstream work in the plan, out-of-scope findings in the backlog, and significant rationale in the decision log. Synchronize state as implemented, pending review, then stop. An author's checks are not an independent review.
 
 ### Stage 3 — Reviewer: review independently
 
@@ -56,7 +61,7 @@ Validation uses the existing `scripts/check.sh` entrypoint. Add meaningful missi
 
 ## Other participants and outputs
 
-Register participants actually in use. Workbuddy reads `AGENTS.md`, current handoff documents, and `.ai/index.md`; it stores reports, Q&A notes, and supporting material under `out/workbuddy/<topic>/` unless the project index names an existing destination. Other reports use `out/reports/`, presentations `out/presentations/`, generated image/video assets `assets/generated/`, and source references `references/`. Create directories when needed, and index useful results by purpose, path, source, and adoption state.
+Register participants actually in use. Workbuddy follows the shared context entrypoints, then reads the requested topic's adopted results and source evidence through `.ai/index.md`; it stores reports, Q&A notes, and supporting material under `out/workbuddy/<topic>/` unless the project index names an existing destination. Other reports use `out/reports/`, presentations `out/presentations/`, generated image/video assets `assets/generated/`, and source references `references/`. Create directories when needed, and index useful results by purpose, path, source, and adoption state.
 
 An agent without file access receives a self-contained prompt with context, destination, and acceptance criteria. A file-capable agent records the returned output and updates the index. Generated image/video records retain full prompts beside the assets; `.ai/asset-manifest.md` links to them and records checks and acceptance. Keep adverse evidence that still affects the current route.
 

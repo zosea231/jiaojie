@@ -1,21 +1,28 @@
 # 项目内容索引
 
-按用途维护能帮助新 agent 定位的入口。新增、移动或采用有用产物时更新对应项，详细记录留在来源文件。已有目录优先，不逐项枚举整个文件树。
+先读 brief 和 plan 概览，定位本轮任务，再按下表进入相关材料。索引注明何时读取，链接到相关章节或模块入口；详细记录和任务状态留在来源文件。新增、移动或采用有用产物时更新对应项，已有目录优先。
 
 ## 当前工作与模块
 
-| 内容 | 入口 | 用途 |
+| 内容 | 入口 | 何时读取／用途 |
 |---|---|---|
 | 目标与核心路线 | [brief.md](brief.md) | 当前目标、范围 |
-| 实施与验收 | [plan.md](plan.md) | 阶段、状态、下一步 |
-| 审查与决策 | [review.md](review.md)、[decision-log.md](decision-log.md) | 有效问题与理由 |
-| 待办与参与者 | [backlog.md](backlog.md)、[roster.md](roster.md) | 后续事项、角色与文件访问 |
-| 生成资产 | [asset-manifest.md](asset-manifest.md) | 提示词、检查与接受状态 |
+| 实施与验收 | [plan.md](plan.md) | 先读概览和本轮任务，按依赖查看相关任务 |
+| 审查 | [review.md](review.md) | 实施、审查、修复时读取相关发现及全局问题 |
+| 有效决策 | [decision-log.md](decision-log.md) | 修改相关模块或判断路线时读对应理由 |
+| 范围外事项 | [backlog.md](backlog.md) | 涉及范围边界或用户指定事项时读取 |
+| 参与者 | [roster.md](roster.md) | 角色、文件访问或新参与者影响任务时读取 |
+| 生成资产 | [asset-manifest.md](asset-manifest.md) | 涉及生成资产的提示词、检查与接受状态时读取 |
 | 项目规则 | [AGENTS.md](../AGENTS.md) | 架构、协作、安全与产物要求 |
 | 写作 | [writing-rules.md](../references/writing-rules.md) | 正文与最终包装要求 |
 | 统一检查 | [check.sh](../scripts/check.sh) | 项目验证入口 |
 
-有代码后补充主要模块的职责、入口和依赖方向，链接到模块说明。
+有代码后按主要模块补充入口：
+
+| 模块／主题 | 何时读取／适用任务 | 入口 | 职责与相关依赖 |
+|---|---|---|---|
+
+链接到现有模块 README、资料或相关章节。Workbuddy 按汇报主题读取采用结果与证据，审查者按受影响模块读取实现和原始证据。
 
 ## 产物存放约定
 
