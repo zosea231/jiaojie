@@ -1,78 +1,68 @@
-# Project Rules (for Codex)
+# Project Rules
 
-## Role
-You are working on an embedded/software engineering project.
-Prioritize correctness, minimal diffs, and debuggability.
+## 工作原则
+1. 信息足够时直接行动；需要权衡时给出建议和依据。
+2. 用能解决问题的最简方案，保持正确性、可定位性和任务范围。
+3. 汇报结论须有本次任务证据；失败和未验证内容如实说明。
+4. 仅因破坏性操作、实质范围变化或缺少用户独有信息而暂停。
+5. 结论先行，细节按读者需要展开。用户最新指令优先。
 
-## Operating principles
-1. 信息足够时直接行动，不复述已知事实、不列举不会采用的选项；需要权衡时直接给建议，不抛选择题。
-2. 用能解决问题的最简方案，不做任务外功能、无关重构或面向未来的过度设计。
-3. 汇报前逐条核实结论有本次任务的实证支持；只汇报有证据的部分，失败或未验证的要如实说明。
-4. 仅在确有必要时暂停：操作有破坏性、任务范围实质变化、或缺少只有你能提供的信息。
-5. 结论先行：第一句话说清"发生了什么"，细节后置。
+## 两个核心原则：可读性与模块化
+1. **Codex 可读性优先。** 文件、目录、命名、入口、配置和交接记录让新会话快速理解。保持稳定的入口说明、单一职责、清楚的控制流和数据流，减少隐式状态、重复阅读和无意义改名，便于复用上下文、提高缓存命中率。
+2. **功能模块化与架构健康。** 按稳定职责划分模块，明确接口和依赖方向；在相关开发中持续拆分职责混杂或过大的文件／函数、整理目录、降低复杂度、消除循环依赖和跨层耦合。禁止新增循环依赖。
+
+开发前确认代码归属、调用链和模块边界；开发后维护受影响的入口、接口、依赖说明与内容索引。重大取舍写入 `.ai/decision-log.md`，通过统一检查验证。整理限于当前任务相关范围。
+
+## 防御性编程约束
+默认不新增 hash、不冻结 contract、不建 baseline、不加 gate。
+除非能明确说出一个具体失败场景，并讲清楚为什么 Git、版本号、主键、事务、唯一约束、类型、普通测试全都挡不住它，才允许加。理由就近写入 `.ai/decision-log.md`。
+
+已有的安全措施一个不删；认证、数据安全、不可逆操作、正式发布等高风险环节，仍按项目要求处理。新增哈希或门禁前，说不清要防什么事故、现有机制哪里不够，就不新增。不以重复验证未变化的结果代替实际开发。
+
+## 写作与最终产物
+写文档、报告、PPT、注释和交付说明前，读 `references/writing-rules.md`；起草或改写正文时同时读其内置的 `references/anti-defensive-writing.md`。若存在 `.ai/writing-preferences.md`，一并遵守。
+直接讲问题、方法、结果和判断，使用自然中文和领域通用术语。必要限制用具体条件就近说明，避免反复免责、叠加保留措辞和自造工程概念。
+
+生成最终产物及其包装时，包括标题、文件名、正文、注释、标签、commit、PR 和交付说明，只描述最终采用的状态，假设读者没看过本次会话。
+
+- 会话里的否决、中间尝试和措辞纠正只当作控制信息，不让它们成为最终产物的命名或叙述中心。
+- 对每个交付面分别判断：不知道本次会话的读者需要这条信息吗？省略会不会导致不准确、不安全、误导或兼容性信息缺失？它是不是任务开始时已提交或用户确认状态中的真实变化，而且当前交付面需要解释它？
+- 「不要提 X」不是让你写「无 X」。标题、文件名、开篇和标签从正向目标重新生成，不逐词修改被否文案。
+- 保留真实的基线变化、已经执行的外部操作，以及必要的技术名称、诊断、测试和快照。任务开始前已有的用户改动不算被否内容。
+- 不把与本任务无关的改动写进本次 commit、PR 或交付说明。对比、引用、审计和迁移说明，只在用户要求或当前交付面确实需要时保留。
+- 写完后通读全部用户可见内容及其包装，包括文件名、元数据和 hook 改写。内容变化后重新检查，不另加「已清理」或「无残留」类声明。
 
 ## Context source of truth
-Do NOT rely on conversation memory across sessions.
-At the start of every task, read (in this order):
-1. `.ai/brief.md`      — what the current task is
-2. `.ai/plan.md`       — the design/implementation plan
-3. `.ai/review.md`     — outstanding review findings (if any)
-4. `.ai/backlog.md`    — known non-blocking issues (do NOT fix unless asked)
-5. `.ai/decision-log.md` — why past decisions were made, do not relitigate them
-6. `.ai/roster.md`     — participating agents and their capabilities
-7. `.ai/asset-manifest.md` — generated-asset prompts and acceptance state, when applicable
+每次任务开始按顺序读取：
+1. `.ai/brief.md` — 当前目标、核心路线、范围。
+2. `.ai/plan.md` — 阶段、实施方案、验收条件、下一步。
+3. `.ai/review.md` — 仍有效的审查发现。
+4. `.ai/backlog.md` — 当前范围外事项，未授权不处理。
+5. `.ai/decision-log.md` — 当前有效决策和原因。
+6. `.ai/roster.md` — 实际参与者、能力、文件访问和分工。
+7. `.ai/index.md` — 模块、资料、产物与证据入口。
+8. `.ai/asset-manifest.md` — 涉及生成资产时读取。
 
-If these files conflict with what you remember from earlier in the
-conversation, the files win.
+当前文件优先于旧会话记忆，最新用户指令优先于文件。
+
+## 交接文档持续维护
+遵循 `references/sync-rules.md`，开发中直接更新相关状态和索引。稳定保留核心目标、路线、阶段和有效决策；删除失效、偏离路线和重复的活跃记录，合并仍有用的理由。backlog 与 decision-log 按当前有效性维护。
+详细过程留在 `references/` 或 `out/`，`.ai/` 只留必要证据入口；不因精简文档删除代码、数据、论文、采用稿或仍影响结论的负结果。
 
 ## Handoff is human-orchestrated, not locked
-Only one agent works at a time because the human only talks to one of
-you at a time — there is no concurrent-write scenario to guard against,
-so no lock is needed. Your job is simpler than that:
-- At the start of every task, read `.ai/` fresh (see above).
-- When the human says something like "同步进度到交接文档" /
-  "sync progress to the handoff docs" / "把这轮结论写入文档"，stop
-  what you're doing and write a sync update following
-  `references/sync-rules.md` before responding further.
-- At the natural end of a stage, follow the same sync rules, tell the
-  human what changed, and stop so the human can choose the next agent.
-- Never assume the next agent remembers this conversation — if it's
-  not written in `.ai/`, it doesn't exist for them.
-- Do not proceed to the next agent's role (for example, do not review
-  your own diff as if you were the independent reviewer).
+用户选择当前会话和角色，阶段结束后同步文档并停止，等待用户切换。默认 Codex Astra 规划／独立审查，Codex Sol 执行／修复；模型与角色以用户实际安排为准。不会因名册条目自动启动 agent。
 
-## Role scoping (one role per turn)
-Do exactly the role you were asked to do this turn, nothing more:
-- "只做架构分析，不要修改文件" → read-only, output to `.ai/plan.md` only.
-- "只根据 .ai/review.md 修复 P0/P1，不要处理 P2" → touch only what's
-  in scope; log anything else you notice in `.ai/backlog.md`, do not fix it.
-Do not silently expand scope, refactor unrelated code, or "helpfully"
-fix things outside the stated role.
+用户要求“同步进度到交接文档”等时先完成同步。每轮只做指定角色，作者自检不记为独立审查通过。Claude Code 仅参与时维护 `CLAUDE.md`，共享规则以本文件为准；已有文件保留，停用时无需持续更新副本。
+
+## Workbuddy 与内容索引
+Workbuddy 和其他文档 agent 从本文件及 `.ai/index.md` 入手，按用户任务阅读来源。报告、问答笔记和配套材料默认放 `out/workbuddy/<topic>/`，采用稿与可编辑源文件一并登记；若索引已有约定则沿用。普通报告放 `out/reports/`，演示文稿放 `out/presentations/`，图片／视频生成资产放 `assets/generated/`，参考资料放 `references/`。
+
+仅在有产物时创建目录。每次新增、移动或采用有用产物，更新 `.ai/index.md` 的用途、路径、来源和采用状态。详细生成提示词放产物旁，`.ai/asset-manifest.md` 保存入口和验收结论。无文件访问能力的 agent 由文件型 agent 提供自包含上下文并落盘登记。文档协作遵守角色范围，不自行修改产品代码或研究路线。
 
 ## Workflow
-Before editing, explain the suspected root cause.
-Make the smallest safe change.
-Do not refactor unrelated code.
-After editing, run `./scripts/check.sh`. This is the ONLY validation
-entry point — do not invent or guess your own test/lint/build commands.
-If this task's acceptance criteria aren't covered by `./scripts/check.sh`
-yet, add a new `scripts/checks/<name>.sh` (never rewrite existing checks
-or the always-run main flow) and log why in `.ai/decision-log.md`. If
-they're already covered, don't re-evaluate or touch the file.
-If checks fail, fix only the failure introduced by this task.
-If the same root-cause failure occurs in three consecutive check runs,
-stop editing and re-running checks. Mark the task blocked in
-`.ai/plan.md` (and `.ai/review.md` during a review-fix pass), record
-the failing command, error signature, and attempted fixes, then hand the
-decision to the human. Reset the count only after the check advances or
-evidence identifies a different root cause.
-Record any other issues you notice (but are not fixing) in `.ai/backlog.md`.
-Record any non-obvious "why" decisions in `.ai/decision-log.md`.
+修改前说明问题原因，做最小安全修改。改动后运行 `./scripts/check.sh`，它是唯一验证入口。已有覆盖直接复用；缺少必要的行为验收时，新增 `scripts/checks/<name>.sh` 并记录原因，保持既有检查。文档措辞和交接同步通过阅读核对，不为其新增同构测试或门禁。
 
-## Embedded constraints
-Be careful with ISR context, DMA ownership, cache coherency, alignment,
-and volatile access.
-Do not introduce dynamic allocation in low-level drivers unless
-explicitly approved.
-Do not change public protocol behavior without documenting it in
-`.ai/decision-log.md`.
+检查失败只修本任务引入的问题。同一根因连续三次失败后停止编辑和重跑，在 `.ai/plan.md`（修复审查时也在 `.ai/review.md`）记录阻塞、命令、错误特征、尝试和所需决策。只有检查推进或证据识别不同根因才重置计数。范围外问题记入 backlog，非显而易见的理由记入 decision-log。
+
+## Embedded constraints（适用时）
+注意 ISR 上下文、DMA 所有权、缓存一致性、对齐和 volatile 访问。底层驱动不引入未经明确批准的动态分配。公共协议行为变化须在 `.ai/decision-log.md` 说明。

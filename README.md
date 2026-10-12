@@ -3,140 +3,102 @@
 [![Agent Skills](https://img.shields.io/badge/Agent%20Skills-jiaojie-blueviolet)](skills/jiaojie/SKILL.md)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-> 让不同 Agent 在零对话上下文下，仍能依靠文档完成清晰交接。
+让新会话和不同 Agent 通过简短、准确的项目文档快速接续工作。
 
-**Jiaojie** 是一个 SKILL.md 格式的 Agent Skill。它为项目建立默认的
-**Codex + Claude Code** 协作工作流，并可按需接入图片、视频或其他专用
-Agent。Skill ID、安装目录和显式调用名均为 `jiaojie`。
+Jiaojie 的两个核心原则是 **Codex 可读性**与**功能模块化**：保持入口清楚、职责单一、依赖明确，随相关开发拆分复杂文件、整理目录并维护架构。`.ai/` 保存核心目标、路线、当前状态和必要证据入口，持续删除失效与重复记录。
 
-它生成：
+默认使用两个 Codex 会话：**Astra 规划／独立审查，Sol 执行／修复**。用户按任务切换会话；Claude Code、Workbuddy 和生成 Agent 按需参与。模型名称是角色示例，不会自动切换模型或启动其他会话。
 
-- `AGENTS.md` 与 `CLAUDE.md`：两类 Agent 共同遵守的项目规则；
-- `.ai/`：目标、方案、审查、待办、决策、花名册和资产记录；
-- `references/sync-rules.md`：让下一位 Agent 从零上下文读懂当前状态的同步规则；
-- `scripts/check.sh`：代码和资产修改后的统一验证入口。
-
-交接由人类手动编排，不使用锁、Hook 或写入权字段。当前 Agent 在阶段结束时把
-结论同步到 `.ai/`，停止工作；人类再切换到下一位 Agent。
-
-## 一行安装
-
-仓库名和 Skill ID 均为 `jiaojie`：
+## 安装
 
 ```bash
-npx skills add zosea231/jiaojie --skill jiaojie --agent codex claude-code -g -y
+npx skills add zosea231/jiaojie --skill jiaojie --agent codex -g -y
 ```
 
-本项目刻意只维护这一条标准 Skill 安装通道，不提供
-`.claude-plugin/marketplace.json` 或 `plugins/jiaojie/` 镜像，避免两份包结构
-长期漂移。
-
-安装后重启对应 Agent 或新开会话，然后直接说：
+Claude Code 用户可将 `--agent codex` 改为 `--agent claude-code`，或同时安装到两者。安装后在新会话中说：
 
 ```text
-用 jiaojie 为当前项目初始化 Codex + Claude Code 交接工作区。
+用 $jiaojie 初始化当前项目的交接工作区。
 ```
 
-支持显式调用的宿主也可以使用 `$jiaojie`。
+也可以从仓库直接运行：
 
-## 工作流
+```bash
+git clone https://github.com/zosea231/jiaojie.git
+bash jiaojie/skills/jiaojie/scripts/init_workflow.sh /path/to/project
+```
+
+默认生成 AGENTS.md、`.ai/`、同步与写作规则，以及统一检查入口。Claude Code 参与时添加 `--with-claude`，生成引用 AGENTS.md 的 CLAUDE.md。已有文件保留；首次开发前按真实工具链调整 `scripts/check.sh`。
+
+## 已有项目更新
+
+先更新安装的 skill：重新执行安装命令；使用仓库副本时运行 `git pull --ff-only`。然后在目标项目的新会话中执行：
+
+```text
+用最新 $jiaojie 更新当前项目规则：合并 AGENTS.md、同步和写作规则，维护名册与内容索引，精简 .ai，保留核心路线、用户修改和现有安全措施。
+```
+
+Skill 按 [update-rules.md](skills/jiaojie/references/update-rules.md) 完成语义合并。初始化脚本只补缺失文件；更新 skill 本身不会自动改写已有项目。再次更新直接合并差异，保留项目专属内容和既有检查。
+
+## 默认规则
+
+- **结构易读、职责清楚。** 开发前确认入口、调用链和模块边界；相关开发中降低复杂度、明确依赖方向、消除循环依赖，并更新索引。
+- **交接保持当前状态。** 目标和核心路线稳定保留，当前状态原位更新；失效待办、偏离路线的旧指令和重复历史删除，必要证据留入口。代码、数据、论文、采用稿和有用负结果保留。
+- **直接写作。** 内置 [Anti-Defensive Writing](https://github.com/Kiterlin/anti-defensive-writing) 完整技能及 MIT 许可。文档、汇报和交接直接讲问题、方法、结果和判断，必要限制用具体条件说明。
+- **按实际风险设计。** 默认不新增 hash、不冻结 contract、不建 baseline、不加 gate。只有能说明具体失败场景及 Git、版本号、主键、事务、唯一约束、类型、普通测试为何全都不足，才允许增加。既有安全措施保留，认证、数据安全、不可逆操作和正式发布继续按项目要求处理。
+- **交付描述最终状态。** 标题、文件名、正文、注释、标签、commit、PR、元数据和交付说明都面向没看过会话的读者。根据最终目标重新组织，保留读者需要的真实变化、外部操作、诊断、测试与兼容性信息。
+
+完整约束在 [AGENTS.md 模板](skills/jiaojie/assets/AGENTS.md)，写作入口在 [writing-rules.md](skills/jiaojie/references/writing-rules.md)。
+
+## 协作与索引
 
 ```mermaid
 flowchart LR
-    H["Human<br/>选择当前 Agent"]
-    C["Claude Code<br/>规划 / 独立审查"]
-    X["Codex<br/>实现 / 定向修复"]
-    D[(".ai/<br/>跨会话事实源")]
-    V["scripts/check.sh<br/>统一验证入口"]
-
-    H --> C
-    C -->|同步 plan / review 后停止| D
-    D --> H
-    H --> X
-    X --> V
-    V -->|同步实现状态后停止| D
+    P["Astra：规划 / 独立审查"] --> D[".ai/ 当前路线、状态、索引"]
+    E["Sol：实施 / 修复"] --> C["scripts/check.sh"] --> D
+    W["Workbuddy：阅读 / 问答 / 汇报"] --> O["out/workbuddy/"] --> D
+    D --> H["用户选择下一会话与角色"]
+    H --> P
+    H --> E
+    H --> W
 ```
 
-默认闭环：
+每轮执行指定角色，阶段结束同步后停止。独立审查由用户安排；工程检查统一从 `scripts/check.sh` 进入，同根因连续三次失败后记录阻塞并交回用户决策。文档同步和措辞通过阅读核对。
 
-1. Claude Code 读取 `.ai/`，规划并同步 `.ai/plan.md`，然后停止；
-2. 人类切换到 Codex；
-3. Codex 读取 `.ai/`，按方案实现并运行 `scripts/check.sh`，同步状态后停止；
-4. 人类切换到 Claude Code；
-5. Claude Code 独立审查，把 P0/P1/P2 写入 `.ai/review.md`，同步后停止；
-6. 人类决定切回 Codex 定向修复，或进入人工合并。
+`.ai/index.md` 按用途链接到模块入口、参考资料、报告、采用稿与证据，记录来源和状态。新增、移动或采用产物时更新对应项。Workbuddy 读取同一索引，报告、问答和附件默认放 `out/workbuddy/<topic>/`；已有项目沿用索引里的目录约定。无文件访问能力时由文件型 Agent 提供上下文、落盘并登记。
 
-当用户明确说“同步进度到交接文档”“更新交接文档”或
-“sync progress to the handoff docs”时，Agent 会立即按
-`references/sync-rules.md` 将信息路由到正确文件，而不是输出对话流水账。
-
-## 生成的项目结构
+## 初始化结果
 
 ```text
 project/
-├── AGENTS.md                    # Codex 项目规则
-├── CLAUDE.md                    # Claude Code 项目规则
+├── AGENTS.md
+├── CLAUDE.md                    # --with-claude 时创建
+├── .ai/
+│   ├── brief.md                 # 目标与核心路线
+│   ├── plan.md                  # 阶段、实施与验收
+│   ├── review.md                # 当前审查发现
+│   ├── backlog.md               # 有效后续事项
+│   ├── decision-log.md          # 当前决策与理由
+│   ├── roster.md                # 实际参与者和能力
+│   ├── index.md                 # 模块、资料和产物入口
+│   ├── asset-manifest.md        # 生成资产、提示词入口和接受状态
+│   └── prompts-examples.md
 ├── references/
-│   └── sync-rules.md            # 交接同步的写作规则（怎么写才能让下一个 Agent 读懂）
-├── scripts/
-│   ├── check.sh                 # 统一验证入口（唯一允许运行的检查命令）
-│   └── checks/                  # 可选，任务专属验收；按需创建，存在时调用，不进常驻主流程
-└── .ai/
-    ├── brief.md                 # 任务目标
-    ├── plan.md                  # 设计方案 + 验收标准
-    ├── review.md                # 审查意见（P0/P1/P2）
-    ├── backlog.md               # 发现但本次不处理的问题
-    ├── decision-log.md          # 为什么这样做
-    ├── prompts-examples.md      # 交接提示词示例
-    ├── roster.md                # 参与 Agent 花名册
-    └── asset-manifest.md        # 生成资产（图片/视频）登记表
+│   ├── sync-rules.md
+│   ├── writing-rules.md
+│   ├── anti-defensive-writing.md
+│   └── anti-defensive-writing.LICENSE
+└── scripts/check.sh
 ```
 
-已有文件不会被覆盖，因此可以在现有项目中重复运行初始化脚本以补齐缺失文件。
-`.ai/roster.md` 只登记 Agent、模型、能力、文件访问和状态，不承担锁或调度功能。
+产物目录随任务创建：`out/reports/`、`out/presentations/`、`out/workbuddy/`、`assets/generated/`。完整生成提示词与详细过程放产物旁，交接文档只保存入口和当前状态。
 
-## 可选：接入图片或视频 Agent
+## 维护这个仓库
 
-在 `.ai/roster.md` 增加一行并填写 `generate-image` 或
-`generate-video` 能力。不能读取项目文件的 Agent 由文件型 Agent 为其准备
-自包含 prompt；生成后，人类切回文件型 Agent，负责资产落盘，并把完整
-prompt、路径和验收状态追加到 `.ai/asset-manifest.md`。
+可安装包位于 `skills/jiaojie/`：SKILL.md 是技能入口，assets 是项目模板，references 是同步、写作和更新说明，scripts/init_workflow.sh 创建缺失文件。根目录 AGENTS.md、可选 CLAUDE.md 和运行规则用于维护本仓库；根 `.ai/` 记录本仓库当前工作，模板在 `assets/ai-templates/`。
 
-内容质量由人类或独立审查 Agent 判断。若项目提供
-`scripts/checks/assets.sh`，统一入口只检查存在性、格式、尺寸或时长。
-生成的资产会落在 `assets/generated/`（首次生成时才创建）。
+运行 `bash scripts/check.sh` 验证模板打包、初始化保留已有文件、可选 Claude 入口及统一检查的失败传播。详细入口见 [.ai/index.md](.ai/index.md)。
 
-## 仓库结构
+## 许可与来源
 
-```text
-jiaojie/
-├── .ai/                         # 仓库自身的干净交接模板
-├── AGENTS.md                    # 仓库自用规则副本
-├── CLAUDE.md                    # 仓库自用规则副本
-├── references/
-│   └── sync-rules.md            # 仓库自用的运行时同步规则
-├── scripts/
-│   └── check.sh                 # 仓库验证入口
-└── skills/
-    └── jiaojie/                 # 可安装的 Skill 包
-        ├── SKILL.md             # 触发条件与操作步骤（Agent 实际读取的入口）
-        ├── agents/openai.yaml   # Codex 专属展示配置
-        ├── assets/              # 会被复制进目标项目的模板，改这里才是改真正的产出物
-        │   ├── AGENTS.md / CLAUDE.md  # 对应目标项目根目录的同名规则
-        │   ├── ai-templates/*.md      # 对应目标项目 .ai/ 下的 8 个文件
-        │   └── scripts/check.sh       # 对应目标项目 scripts/check.sh
-        ├── references/
-        │   ├── rules.md         # 设计原理与取舍说明（给维护者看，不进目标项目）
-        │   └── sync-rules.md    # 运行时同步规则（会被复制进目标项目）
-        └── scripts/init_workflow.sh  # 一键搭建脚手架的入口脚本
-```
-
-`references/rules.md` 只存在于 Skill 包内，是设计说明文档，不参与自举同步；
-`sync-rules.md` 是运行时规则，在 Skill 包与仓库根目录两处保持一致。
-
-根目录的自用规则和 `.ai/` 模板会由 `scripts/check.sh` 与
-`skills/jiaojie/assets/` 对账，防止仓库说明与实际安装产物漂移。
-
-## License
-
-MIT
+Jiaojie 使用 [MIT 许可](LICENSE)。内置写作技能来自 Kiterlin 的 [Anti-Defensive Writing](https://github.com/Kiterlin/anti-defensive-writing)，按其 [MIT 许可](skills/jiaojie/references/anti-defensive-writing.LICENSE) 保留署名；来源版本见 [writing-rules.md](skills/jiaojie/references/writing-rules.md)。

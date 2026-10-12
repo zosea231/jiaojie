@@ -1,20 +1,7 @@
-# Brief（当前任务说明）
+# Jiaojie 当前目标
 
-> 每次开始新任务时，由人类或负责梳理方案的 Agent 填写。
-> 新会话开始时，任何 Agent 都必须先读这个文件。
+让项目在扩展和跨会话协作中保持可读、模块化、路线明确。默认由用户切换 Codex Astra 规划／审查会话与 Sol 执行会话，按需加入 Claude Code、Workbuddy 和生成 agent。
 
-## 任务目标
-（一句话说明要解决什么问题 / 达成什么效果）
+当前交付：更新可安装 skill、项目模板、初始化脚本、已有项目更新流程及 README。默认约束包括文档精简、内容索引、产物位置、Anti-Defensive Writing、防御性编程阈值和最终产物表述。
 
-## 背景 / 触发原因
-（为什么现在要做这件事，相关 issue / 现象）
-
-## 范围（In Scope）
--
-
-## 明确不做（Out of Scope）
--
-
-## 验收标准
-- `./scripts/check.sh` 全部通过
--
+验收使用 `scripts/check.sh`，检查包内文件、初始化行为、保留已有内容、可选 Claude 入口及既有检查的失败传播。用户已授权提交并推送到 zosea231/jiaojie。

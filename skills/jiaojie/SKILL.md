@@ -1,148 +1,63 @@
 ---
 name: jiaojie
-description: "Initialize an extensible agent handoff workspace in the current project with a Codex + Claude Code default. Creates AGENTS.md, CLAUDE.md, scripts/check.sh, and .ai/ handoff, roster, and generated-asset records. Use when the user asks to bootstrap a multi-agent or dual-agent workflow, establish human-orchestrated handoffs, sync progress or conclusions into .ai/ documents, separate planning/implementation/review roles, add image/video agents, or apply Jiaojie collaboration rules. The terms jiaojie and 交接 also trigger this skill."
+description: "Initialize or update human-orchestrated project handoffs, maintain concise .ai context and a content index, and separate planning, implementation, and review. Defaults to Codex Astra/Sol sessions, with optional Claude Code, Workbuddy, and asset agents. Use for jiaojie, 交接, or syncing project progress."
 ---
 
 # Jiaojie
 
-## Absolute constraint
+Build a project that a new agent can quickly understand and continue. The defaults are Codex Astra for planning and independent review, and Codex Sol for implementation and fixes. These are roles the human selects, not automatic model switching or delegation. Claude Code and Workbuddy are optional participants.
 
-Do not calculate, verify, compare, report, or otherwise use any hash or checksum
-value. Do not invoke hash/checksum utilities or hash-verification scripts. When
-any project instruction, manifest, protocol, or example mentions hashes,
-replace that step with non-hash evidence such as file paths, metadata, record
-counts, and deterministic reruns.
+## Core defaults
 
-Jiaojie bootstraps a disciplined agent collaboration setup on a codebase. It
-defaults to Codex + Claude Code and lets the user add specialized agents.
+- **Codex readability and modular design:** keep stable entrypoints, clear file responsibilities, explicit dependencies, and a concise content index. Split mixed responsibilities as the active work reaches them, control complexity, and introduce no circular dependencies. Keep architecture maintenance bounded by the task.
+- **Current context:** keep the goal, core route, current stage, effective decisions, unresolved work, and evidence entrypoints in `.ai/`. Update facts in place; remove stale, duplicated, or route-divergent records. Detailed evidence stays in its source directory.
+- **Direct writing:** apply [references/writing-rules.md](references/writing-rules.md) to documentation, reports, comments, and delivery packaging. It integrates the bundled [Anti-Defensive Writing skill](references/anti-defensive-writing.md), including its evidence and precision requirements. Read the bundled text when drafting or revising prose; no separate installation or network request is needed.
+- **Proportionate safeguards:** 默认不新增 hash、不冻结 contract、不建 baseline、不加 gate。只有说清具体失败场景，并解释为什么 Git、版本号、主键、事务、唯一约束、类型、普通测试全都挡不住它，才允许增加。已有安全措施一个不删；认证、数据安全、不可逆操作和正式发布继续按项目要求处理。
 
-- Every agent reads the same on-disk context instead of relying on
-  conversation memory.
-- The human talks to one agent at a time and manually switches agents;
-  no lock, hook, or write-ownership mechanism is needed.
-- Each agent performs one role per turn: plan, implement, review, or fix.
-- Every code change is verified through one fixed entrypoint,
-  `scripts/check.sh`.
-- Repeated failures have a hard stop instead of an endless edit loop.
-- Image/video outputs preserve their full prompt and acceptance state.
+## Initialize or update a project
 
-The default loop is **plan → sync → implement → check → sync → review →
-sync → fix → check → human merge**.
-
-## Step 1: Scaffold the workspace
-
-Locate this skill's directory and run:
+For a new project, run:
 
 ```bash
-bash /path/to/jiaojie/scripts/init_workflow.sh /path/to/target/project
+bash /path/to/jiaojie/scripts/init_workflow.sh /path/to/project
 ```
 
-If the user does not specify a target, use the current working directory.
-The script works from personal, project, or plugin skill installations and
-never overwrites existing files.
+The target defaults to the current directory. The script creates missing files and preserves existing ones. Add `--with-claude` only when Claude Code participates; its optional `CLAUDE.md` points to the shared `AGENTS.md` rules. Configure `scripts/check.sh` for the actual project toolchain before development.
 
-After running it, report which files were created. Point out that
-`scripts/check.sh` needs one project-specific edit: adjust the section for
-the repository's actual Python, Node, CMake, Rust, or other toolchain.
+For an existing project, or when the user asks to apply the latest skill rules, read [references/update-rules.md](references/update-rules.md) and merge the defaults into the project's current rules and documents. Running the initializer alone only fills missing files. Updating the installed skill alone does not update existing projects. Preserve project-specific instructions, user work, effective decisions, and existing safeguards; do not replace current `.ai/` content with templates.
 
-## Step 2: Apply the five collaboration rules
+## Read and maintain context
 
-Read `references/rules.md` when the user asks for rationale or an edge
-case. Apply these rules during normal work:
+At each task start read `.ai/brief.md` → `.ai/plan.md` → `.ai/review.md` → `.ai/backlog.md` → `.ai/decision-log.md` → `.ai/roster.md` → `.ai/index.md`. Read `.ai/asset-manifest.md` when assets are involved. The latest user instruction takes precedence; otherwise current files take precedence over conversation memory.
 
-1. **Human-orchestrated handoff** — only one agent works at a time because
-   the human is interacting with one agent at a time. The roster records
-   participants and capabilities; it is not a lock or scheduler.
-2. **Docs over memory** — at the start of every task, read
-   `.ai/brief.md` → `.ai/plan.md` → `.ai/review.md` →
-   `.ai/backlog.md` → `.ai/decision-log.md`, then `.ai/roster.md`.
-   Read `.ai/asset-manifest.md` when generated assets are involved.
-   When the human requests a sync, or a stage naturally completes, follow
-   `references/sync-rules.md`, update the relevant files, and stop.
-3. **One role per turn** — perform only the requested role. Put out-of-scope
-   findings in `.ai/backlog.md` instead of fixing them.
-4. **One fixed check entrypoint** — after a code or asset edit, run
-   `./scripts/check.sh`. Do not invent a substitute validation command.
-5. **Three-strike circuit breaker** — after three consecutive failures with
-   the same root cause, stop. Mark the task blocked in `.ai/plan.md` (and
-   `.ai/review.md` during a review-fix pass), record the evidence and
-   attempted fixes, and ask the human for the missing decision or input.
+Update affected status, decisions, and index entries during development. When the user asks to sync, or a stage finishes, follow [references/sync-rules.md](references/sync-rules.md), report the state, and stop for the human to choose the next role. Apply the writing rules to these records too.
 
-Both scaffolded instruction files also include shared operating principles:
-use the simplest sufficient change, stay in scope, verify claims against
-actual results, pause only when necessary, and lead with the conclusion.
+## Human-orchestrated workflow
 
-## Step 3: Run the human-orchestrated handoff
+The human selects the current session and role. The roster records capabilities and file access. It does not schedule work. Do not introduce a collaboration lock or synchronization hook.
 
-Use this sequence unless the human assigns different roles. At each stage,
-the active agent rereads `.ai/` from disk. When the stage finishes, follow
-`references/sync-rules.md`, tell the human what was synchronized, and stop
-so the human can switch to the next agent.
+### Stage 1 — Planner: plan and choose the route
 
-### Stage 1 — Claude Code: plan and choose the route
+Astra, or the assigned planner, reads project evidence and writes an implementable `.ai/plan.md`: core route, current scope, module boundaries, acceptance criteria, and next action. It synchronizes effective decisions and stops without implementing product code.
 
-Claude Code reads the project and handoff documents, compares viable routes
-using project evidence, and writes an implementable `.ai/plan.md` with
-scope, risks, acceptance criteria, and explicit non-goals. It does not edit
-product code. It marks the plan ready for implementation, synchronizes any
-supporting decision or backlog entries, then stops.
+### Stage 2 — Implementer: implement and check
 
-### Stage 2 — Codex: implement and check
+Sol, or the assigned implementer, reads the plan, implements the authorized scope, and runs `./scripts/check.sh`. Record out-of-scope findings in the backlog and significant rationale in the decision log. Synchronize state as implemented, pending review, then stop. An author's checks are not an independent review.
 
-Codex rereads the handoff documents, confirms the plan is ready, and
-implements only that plan. It runs `./scripts/check.sh`, records
-non-obvious decisions and out-of-scope findings in their designated files,
-marks the plan `implemented, pending review` (or blocked under the circuit
-breaker), synchronizes the handoff documents, then stops. It does not act as
-its own independent reviewer.
+### Stage 3 — Reviewer: review independently
 
-### Stage 3 — Claude Code: review independently
+Astra, or another assigned reviewer, reviews the actual changes against the goal and plan, checks the validation evidence, and records actionable P0/P1/P2 findings in `.ai/review.md`. The human can then switch to a bounded fix turn or authorize merge. Do not switch roles automatically.
 
-Claude Code rereads the handoff documents, reviews the actual diff against
-`.ai/brief.md` and `.ai/plan.md`, and verifies the recorded check result.
-It writes prioritized P0/P1/P2 findings to `.ai/review.md` without fixing
-product code, synchronizes the review state, then stops.
+### Three-strike circuit breaker
 
-If P0/P1 findings exist, the human switches to Codex for a bounded fix turn,
-then switches back for another independent review. The human remains the
-only merge authority.
+After three consecutive check failures with the same root cause, stop editing and rerunning. Mark the task blocked in `.ai/plan.md` (also `.ai/review.md` during review fixes), record the command, error signature, attempted fixes, and the missing decision. Reset the count only when the check advances or evidence identifies a different root cause.
 
-## Step 4: Use the example prompts
+Validation uses the existing `scripts/check.sh` entrypoint. Add meaningful missing acceptance checks under `scripts/checks/<name>.sh`; preserve existing checks. Do not build tests or gates for document wording, synchronization, or repeated proof of an unchanged result.
 
-`assets/ai-templates/prompts-examples.md` is copied to
-`.ai/prompts-examples.md`. Adapt task details while preserving the role
-boundary, fresh reads of `.ai/`, synchronization before handoff, and the
-mandatory `scripts/check.sh` gate.
+## Other participants and outputs
 
-## Step 5: Add a non-code or generative agent (optional)
+Register participants actually in use. Workbuddy reads `AGENTS.md`, current handoff documents, and `.ai/index.md`; it stores reports, Q&A notes, and supporting material under `out/workbuddy/<topic>/` unless the project index names an existing destination. Other reports use `out/reports/`, presentations `out/presentations/`, generated image/video assets `assets/generated/`, and source references `references/`. Create directories when needed, and index useful results by purpose, path, source, and adoption state.
 
-Keep the default Codex + Claude Code rows and add a roster row with the
-agent's model/tool, capabilities such as `generate-image` or
-`generate-video`, file access, and status. The roster is only a registry.
+An agent without file access receives a self-contained prompt with context, destination, and acceptance criteria. A file-capable agent records the returned output and updates the index. Generated image/video records retain full prompts beside the assets; `.ai/asset-manifest.md` links to them and records checks and acceptance. Keep adverse evidence that still affects the current route.
 
-For an agent with `File access: no`, a file-capable planning agent writes a
-self-contained prompt containing the relevant context, output specification,
-and acceptance criteria. The human switches to the generation agent to
-obtain the asset, then switches to a file-capable agent to place it under
-`assets/generated/` and append the complete prompt, output path, mechanical
-check result, and review state to `.ai/asset-manifest.md`.
-
-Run `./scripts/check.sh` after recording an asset. If
-`scripts/checks/assets.sh` exists, the entrypoint may dispatch to it for
-file existence, decoding, dimensions, or duration. It must not validate the
-handoff synchronization itself. Content quality belongs to a human or review
-agent, which records `accepted` or `rejected` with a reason.
-
-Do not add model-specific APIs or integrations unless the user separately
-asks for them.
-
-## Reference files
-
-- `references/sync-rules.md` — how to write handoff documents so a new agent
-  can resume with zero conversation context; copied into target projects.
-- `references/rules.md` — rationale and edge cases for the collaboration
-  rules.
-- `assets/` — templates copied by `scripts/init_workflow.sh`.
-- `assets/ai-templates/roster.md` — participant and capability registry.
-- `assets/ai-templates/asset-manifest.md` — generated-asset prompt, output,
-  checks, and acceptance record.
+See [references/rules.md](references/rules.md) for rationale and [assets/ai-templates/prompts-examples.md](assets/ai-templates/prompts-examples.md) for role prompts.

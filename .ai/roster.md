@@ -1,14 +1,7 @@
-# Agent Roster（Agent 花名册）
+# 当前参与者
 
-> 参与者与能力的登记表，不涉及写入调度——同一时间只有一个agent在工作，
-> 由人类手动切换，不需要机制强制。
+| 参与者 | 角色 | 文件访问 | 状态 |
+|---|---|---|---|
+| Codex 当前会话 | 实施、作者检查、提交推送 | yes | 实施与作者检查完成 |
 
-## 参与 Agent
-
-| Agent | Model / tool | Capabilities | File access | Status |
-|---|---|---|---|---|
-| Claude Code | Claude Code | plan, review | yes | idle |
-| Codex | Codex | implement, fix, review | yes | idle |
-
-允许的 `Status`：`idle`、`active`、`blocked`。能力按需填写，例如 `plan`、
-`implement`、`review`、`generate-image`、`generate-video`。
+用户安排独立审查时再登记对应会话。本仓库模板默认 Astra／Sol 分工，Claude Code、Workbuddy 按实际参与启用。

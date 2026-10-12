@@ -69,12 +69,6 @@ tail -n +3 CLAUDE.md | cmp -s - "$skill_dir/assets/CLAUDE.md" || {
   echo "FAIL: CLAUDE.md differs from its scaffold template after the self-hosting banner" >&2
   exit 1
 }
-for name in brief plan review backlog decision-log prompts-examples roster asset-manifest; do
-  cmp -s ".ai/$name.md" "$skill_dir/assets/ai-templates/$name.md" || {
-    echo "FAIL: .ai/$name.md is not in the clean initial template state" >&2
-    exit 1
-  }
-done
 cmp -s references/sync-rules.md "$skill_dir/references/sync-rules.md" || {
   echo "FAIL: repository sync rules differ from the skill copy" >&2
   exit 1
@@ -90,12 +84,12 @@ grep -q 'Three-strike circuit breaker' "$skill_dir/SKILL.md"
 grep -q 'Handoff is human-orchestrated, not locked' "$skill_dir/assets/AGENTS.md"
 grep -q 'Handoff is human-orchestrated, not locked' "$skill_dir/assets/CLAUDE.md"
 grep -q '声学定位算法改进' "$skill_dir/assets/ai-templates/prompts-examples.md"
-grep -q 'Stage 1 — Claude Code: plan and choose the route' "$skill_dir/SKILL.md"
-grep -q 'Stage 2 — Codex: implement and check' "$skill_dir/SKILL.md"
-grep -q 'Stage 3 — Claude Code: review independently' "$skill_dir/SKILL.md"
-grep -q '阶段 1：Claude Code 规划与路线选择' "$skill_dir/assets/ai-templates/prompts-examples.md"
-grep -q '阶段 2：Codex 实施与检查' "$skill_dir/assets/ai-templates/prompts-examples.md"
-grep -q '阶段 3：Claude Code 独立审查' "$skill_dir/assets/ai-templates/prompts-examples.md"
+grep -q 'Stage 1 — Planner: plan and choose the route' "$skill_dir/SKILL.md"
+grep -q 'Stage 2 — Implementer: implement and check' "$skill_dir/SKILL.md"
+grep -q 'Stage 3 — Reviewer: review independently' "$skill_dir/SKILL.md"
+grep -q '阶段 1：Astra 规划与路线选择' "$skill_dir/assets/ai-templates/prompts-examples.md"
+grep -q '阶段 2：Sol 实施与检查' "$skill_dir/assets/ai-templates/prompts-examples.md"
+grep -q '阶段 3：Astra 独立审查' "$skill_dir/assets/ai-templates/prompts-examples.md"
 grep -q '场景 C：接入图片 / 视频生成 Agent' "$skill_dir/assets/ai-templates/prompts-examples.md"
 grep -F -q 'for task_check in scripts/checks/*.sh' "$skill_dir/assets/scripts/check.sh"
 grep -F -q 'scripts/checks/<name>.sh' "$skill_dir/references/rules.md"
@@ -122,10 +116,16 @@ bash -n "$skill_dir/scripts/init_workflow.sh" scripts/check.sh \
 tmp_dir="$(mktemp -d)"
 trap 'rm -rf "$tmp_dir"' EXIT
 bash "$skill_dir/scripts/init_workflow.sh" "$tmp_dir" >/dev/null
+for name in brief plan review backlog decision-log prompts-examples roster asset-manifest index; do
+  cmp -s "$tmp_dir/.ai/$name.md" "$skill_dir/assets/ai-templates/$name.md" || {
+    echo "FAIL: scaffold did not copy .ai/$name.md correctly" >&2
+    exit 1
+  }
+done
 printf '\nPRESERVE_EXISTING_FILE\n' >> "$tmp_dir/AGENTS.md"
 bash "$skill_dir/scripts/init_workflow.sh" "$tmp_dir" >/dev/null
 grep -q 'PRESERVE_EXISTING_FILE' "$tmp_dir/AGENTS.md"
-for path in AGENTS.md CLAUDE.md scripts/check.sh references/sync-rules.md \
+for path in AGENTS.md scripts/check.sh references/sync-rules.md \
   .ai/brief.md .ai/plan.md \
   .ai/review.md .ai/backlog.md .ai/decision-log.md \
   .ai/prompts-examples.md .ai/roster.md .ai/asset-manifest.md; do
@@ -186,14 +186,20 @@ grep -q 'FAIL: scripts/checks/dummy.sh' "$tmp_dir/task-check.log" || {
 rm "$tmp_dir/scripts/checks/dummy.sh" "$tmp_dir/task-check.log"
 (cd "$tmp_dir" && PATH="$tmp_dir/.test-bin:$PATH" bash scripts/check.sh >/dev/null)
 
+# Additional initialization behavior checks.
+for task_check in scripts/checks/*.sh; do
+  [ -e "$task_check" ] || continue
+  bash "$task_check"
+done
+
 validator="${CODEX_HOME:-$HOME/.codex}/skills/.system/skill-creator/scripts/quick_validate.py"
 if test -f "$validator"; then
   if command -v python >/dev/null 2>&1 && python -c 'import yaml' >/dev/null 2>&1; then
-    python "$validator" "$skill_dir"
+    python -X utf8 "$validator" "$skill_dir"
   elif command -v python3 >/dev/null 2>&1 && python3 -c 'import yaml' >/dev/null 2>&1; then
-    python3 "$validator" "$skill_dir"
+    python3 -X utf8 "$validator" "$skill_dir"
   elif command -v py >/dev/null 2>&1 && py -3 -c 'import yaml' >/dev/null 2>&1; then
-    py -3 "$validator" "$skill_dir"
+    py -3 -X utf8 "$validator" "$skill_dir"
   else
     echo "WARN: quick_validate.py found but no runnable Python with PyYAML is available"
   fi

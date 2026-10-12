@@ -1,14 +1,10 @@
-# Agent Roster（Agent 花名册）
+# 参与者与分工
 
-> 参与者与能力的登记表，不涉及写入调度——同一时间只有一个agent在工作，
-> 由人类手动切换，不需要机制强制。
+用户选择当前会话和角色；本表登记能力和文件访问，不承担调度。按实际使用更新。
 
-## 参与 Agent
-
-| Agent | Model / tool | Capabilities | File access | Status |
+| 参与者 | 模型／工具 | 职责 | 文件访问 | 当前状态 |
 |---|---|---|---|---|
-| Claude Code | Claude Code | plan, review | yes | idle |
-| Codex | Codex | implement, fix, review | yes | idle |
+| 规划／审查会话 | Codex Astra | 规划、独立审查 | yes | 待任务 |
+| 执行会话 | Codex Sol | 实施、定向修复 | yes | 待任务 |
 
-允许的 `Status`：`idle`、`active`、`blocked`。能力按需填写，例如 `plan`、
-`implement`、`review`、`generate-image`、`generate-video`。
+Claude Code、Workbuddy 或生成 agent 参与时再加行。Workbuddy 负责文档阅读、问答、汇报，产物按 `.ai/index.md` 存放；文件访问按实际情况填写。没有文件访问时，由文件型 agent 提供自包含上下文并登记返回的产物。角色与模型以用户安排为准。

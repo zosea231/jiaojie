@@ -1,4 +1,4 @@
 interface:
   display_name: "Jiaojie"
-  short_description: "Set up human-orchestrated agent handoffs"
-  default_prompt: "Use $jiaojie to initialize this project with human-orchestrated Codex and Claude Code handoffs."
+  short_description: "Maintain readable projects and agent handoffs"
+  default_prompt: "Use $jiaojie to initialize or update this project's rules, concise handoff documents, and content index for Codex Astra/Sol collaboration."

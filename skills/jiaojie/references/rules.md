@@ -1,146 +1,33 @@
-# Agent Collaboration Rules — Rationale
+# Jiaojie 协作规则的理由
 
-This reference explains the five rules in `SKILL.md`. Read it when the
-user asks why the workflow is structured this way or when an edge case is
-not covered by the scaffolded AGENTS.md / CLAUDE.md.
+## 可读性与模块化
 
-## 1. Human-orchestrated handoff, not locking
+新会话先需要定位入口，再需要理解当前目标和依赖关系。稳定命名、单一职责、明确的数据流和内容索引减少反复探索。拆分职责混杂文件和消除循环依赖应随相关开发完成；规模由实际问题决定。
 
-Only one agent works at a time because the human interacts with one agent at
-a time and decides when to switch. There is no concurrent-write scenario to
-mediate, so Jiaojie does not create a lock file, lock command, hook, or write-owner
-field. `.ai/roster.md` is only a participant and capability registry.
+## 当前文档与核心路线
 
-At the start of each task, the selected agent reads the current handoff files
-from disk. At the natural end of a stage, it synchronizes conclusions and
-status, tells the human what changed, and stops. The human then switches to
-the next agent. Conversation handoff alone is insufficient because the next
-agent may start with zero conversation context.
+`.ai/` 保存当前目标、路线、计划、审查、有效决策和必要证据入口。过期记录长期与当前指令并存，会使下一会话恢复旧路线。按 `sync-rules.md` 在对应条目更新状态，删去失效待办和重复历史；详细实验、生成提示词和采用稿留在原目录。
 
-Synchronization is a documentation behavior, not a security boundary. Do
-not add a hook or validation script for it.
+`.ai/index.md` 是跨 agent 的内容导航，链接到模块入口、资料、报告和资产记录。索引按用途组织，不枚举每个文件。移动文件或形成采用稿时同步索引。
 
-## 2. Documentation over conversation memory
+## 人工切换与角色边界
 
-The durable collaboration state lives in these files:
+默认由用户在两个 Codex 会话间切换：Astra 规划／独立审查，Sol 实施／修复。角色可按任务安排，模型名称不构成运行依赖。实现者验证自身改动，独立审查由另一个指定会话承担。名册记录参与者及文件访问能力，交接不建立锁或调度机制。
 
-| File | Purpose |
-|---|---|
-| `.ai/brief.md` | Current task goal |
-| `.ai/plan.md` | Design, implementation plan, and current stage |
-| `.ai/review.md` | Review findings split by P0/P1/P2 |
-| `.ai/backlog.md` | Out-of-scope issues, appended rather than overwritten |
-| `.ai/decision-log.md` | Non-obvious rationale, appended rather than rewritten |
-| `.ai/roster.md` | Participating agents, capabilities, file access, and status |
-| `.ai/asset-manifest.md` | Generated-asset prompts, paths, checks, and acceptance |
+Claude Code 参与时使用引用 AGENTS.md 的薄入口，减少共享规则副本。Workbuddy 负责阅读、问答与汇报，遵守相同来源和产物目录；没有文件访问时，由文件型 agent 提供上下文并落盘。
 
-At the start of every task, file-capable agents read the first five files in
-that order, then `roster.md`, and `asset-manifest.md` when assets are
-involved. If conversation memory conflicts with the files, the files win.
+## 验证与安全措施
 
-When the human explicitly requests a sync with natural language such as
-"同步进度到交接文档" or "sync progress to the handoff docs", immediately
-follow `references/sync-rules.md`. A natural stage completion is also an
-appropriate sync point. Route facts to their proper files; do not turn one
-file into a conversation transcript.
+`./scripts/check.sh` 保持唯一验证入口，以便所有会话使用同一套工程检查。必要的新验收放 `scripts/checks/<name>.sh`；检查已覆盖时直接复用。模板提供常见技术栈示例，首次使用按项目工具链调整。
 
-An agent with `File access: no` cannot read or update the repository. Give
-it one self-contained prompt, then let the human switch to a file-capable
-agent to record the returned result.
+普通测试验证行为。防止未知假想事故的额外 hash、contract 冻结、baseline 和 gate 默认不加，只有说明具体失败场景及 Git、版本号、主键、事务、唯一约束、类型和普通测试为何不足时才能加。既有认证、数据安全、不可逆操作和发布措施全部保留。文档同步和措辞使用阅读判断，无需验证脚本。
 
-## 3. One role per turn
+同根因连续三次检查失败后停止修改与重跑，记录阻塞证据和所需决策；只有检查推进或识别不同根因才重置。
 
-Each invocation performs exactly one role:
+## 直接写作
 
-- "只做架构分析，不要修改产品代码" — plan only.
-- "只根据 .ai/review.md 修复 P0/P1，不要处理 P2" — bounded fix only.
-- "只实现 .ai/plan.md 中的最小修改建议，不要重构无关代码" — implementation
-  only.
+`writing-rules.md` 将 Anti-Defensive Writing 用于文档、汇报和日常交接。它要求清楚陈述结果、保留必要限定和不利证据，避免反复免责将可选改进变成强制任务。最终标题、文件名和交付说明围绕最终采用状态，读者无需知道会话中的措辞纠正。
 
-This prevents scope creep and preserves independent review. Put findings
-outside the current role in `.ai/backlog.md`; do not silently fix them.
+## 嵌入式约束
 
-## 4. One fixed check entrypoint
-
-`./scripts/check.sh` is the only validation command file-capable agents run
-after edits. This gives every agent and the human directly comparable
-results and closes the change → check → fix loop.
-
-规划或审查阶段确定验收标准时，若 `check.sh` 尚未覆盖对应检查，追加一段
-条件化的检查（复用 `scripts/checks/<name>.sh` 的按需 dispatch 模式，不要
-写进总是执行的主流程），并在 `.ai/decision-log.md` 记一行原因；若已覆盖，
-不要重新评估或重写现有内容。
-
-Generated assets use the same entrypoint for optional mechanical checks. If
-`scripts/checks/assets.sh` exists, `check.sh` runs it to verify existence,
-decodability, dimensions, or duration. Subjective content acceptance belongs in
-`.ai/asset-manifest.md`. The check script must not inspect or enforce
-handoff synchronization.
-
-## 5. Three-strike circuit breaker
-
-Count consecutive failures by root cause, not exact log text:
-
-1. Diagnose the first failure and make the smallest in-scope fix.
-2. On the second failure with the same root cause, re-check the evidence and
-   try at most one materially different in-scope fix.
-3. On the third, stop editing and checking. Mark the task blocked in
-   `.ai/plan.md`; also mark `.ai/review.md` when this is a review-fix pass.
-   Record the command, stable error signature, attempted fixes, and the input
-   or authority needed from the human.
-
-Reset the count only after the check advances or evidence identifies a
-different root cause.
-
-## Typical end-to-end workflow
-
-```text
-1. Claude Code: read .ai/ → write plan → sync handoff docs → stop
-2. Human:       switch to Codex
-3. Codex:       read .ai/ → implement → run check.sh → sync → stop
-4. Human:       switch to Claude Code
-5. Claude Code: read .ai/ → review diff → write P0/P1/P2 → sync → stop
-6. Human:       switch to Codex for a bounded P0/P1 fix, or merge
-```
-
-Any file-capable agent can review, including Codex's dedicated review mode.
-The important boundary is that the implementation turn does not pretend to
-be an independent review and that findings are persisted in
-`.ai/review.md`.
-
-For an optional generated-asset task:
-
-```text
-planner:    write a self-contained prompt and acceptance criteria → sync → stop
-human:      switch to the registered generator
- generator: return the image/video → stop
-human:      switch to a file-capable agent
-recorder:   place the file and append asset-manifest.md → run check.sh → sync → stop
-human:      switch to an independent reviewer
-reviewer:   record accepted/rejected and the reason → sync → stop
-```
-
-## Operating principles
-
-The scaffolded AGENTS.md and CLAUDE.md share these principles:
-
-1. Act once enough information is available; recommend instead of listing a
-   menu of unused options.
-2. Make the simplest change that solves the task; avoid unrelated refactors
-   and speculative features.
-3. Verify every reported conclusion against evidence from the current task.
-4. Pause only for destructive actions, a real scope change, or missing input
-   only the human can provide.
-5. Lead with the conclusion, then provide supporting detail.
-
-## Embedded / low-level constraints (adapt as needed)
-
-The templates include conservative defaults for embedded projects:
-
-- Treat ISR context, DMA ownership, cache coherency, alignment, and volatile
-  access carefully.
-- Do not add dynamic allocation to low-level drivers without approval.
-- Record public protocol changes and their rationale in
-  `.ai/decision-log.md`.
-
-Remove or adapt these constraints when they do not fit the target project.
+适用时注意 ISR、DMA 所有权、缓存一致性、对齐与 volatile。底层驱动的动态分配须有明确授权，公共协议行为变化说明理由。项目更新时保留已采用的专属约束。
