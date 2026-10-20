@@ -1,0 +1,2 @@
+# Worktrees are complete checkouts sharing this repository's Git history.
+/worktrees/

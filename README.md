@@ -3,11 +3,13 @@
 [![Agent Skills](https://img.shields.io/badge/Agent%20Skills-jiaojie-blueviolet)](skills/jiaojie/SKILL.md)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-让新会话和不同 Agent 通过简短、准确的项目文档快速接续工作。
+按项目实际规模初始化可供新会话和不同 Agent 快速接续的文档与工作区。
 
 Jiaojie 的两个核心原则是 **Codex 可读性**与**功能模块化**：保持入口清楚、职责单一、依赖明确，随相关开发拆分复杂文件、整理目录并维护架构。`.ai/` 保存精简的共同目标与路线，按任务链接相关上下文、依赖和证据，持续删除失效与重复记录。
 
 默认使用两个 Codex 会话：**Astra 规划／独立审查，Sol 执行／修复**。用户按任务切换会话；Claude Code、Workbuddy 和生成 Agent 按需参与。模型名称是角色示例，不会自动切换模型或启动其他会话。
+
+Jiaojie 支持 **small** 与 **large** 两种项目方式。small 适合共享计划足以覆盖当前任务的项目，也是默认模式；large 面向多个长期工作流，以全局简要状态、局部任务文档、依赖索引和按需 Git worktree 支持隔离推进。按工作流独立性和上下文需求选择，不按代码量或 agent 数量判定。
 
 ## 安装
 
@@ -30,6 +32,15 @@ bash jiaojie/skills/jiaojie/scripts/init_workflow.sh /path/to/project
 
 默认生成 AGENTS.md、`.ai/`、同步与写作规则，以及统一检查入口。Claude Code 参与时添加 `--with-claude`，生成引用 AGENTS.md 的 CLAUDE.md。已有文件保留；首次开发前按真实工具链调整 `scripts/check.sh`。
 
+多个独立工作流可指定 large 模式：
+
+```bash
+bash jiaojie/skills/jiaojie/scripts/init_workflow.sh /path/to/project \
+  --mode large --workflow data-generation --workflow prediction
+```
+
+large 模式生成全局 `.ai/brief.md`、`plan.md`、`index.md`，每个 workflow 的局部 brief／plan，`references/` 中的共享规则与架构说明，以及 `projects/` 代码区域。`artifacts/` 和具体源码目录按需要创建。脚本不会移动现有内容、创建 Git 分支或 worktree。worktree 仅在实际并行且需要隔离时按架构说明创建。
+
 ## 已有项目更新
 
 先更新安装的 skill：重新执行安装命令；使用仓库副本时运行 `git pull --ff-only`。然后在目标项目的新会话中执行：
@@ -39,6 +50,8 @@ bash jiaojie/skills/jiaojie/scripts/init_workflow.sh /path/to/project
 ```
 
 Skill 按 [update-rules.md](skills/jiaojie/references/update-rules.md) 完成语义合并。初始化脚本只补缺失文件；更新 skill 本身不会自动改写已有项目。再次更新直接合并差异，保留项目专属内容和既有检查。
+
+从 small 升级时先运行 large 初始化补齐新文档，再将各独立任务现有计划的有效状态和证据入口移入对应 workflow，压缩全局计划为简要状态并补索引。代码、数据和路径继续沿用，之后再视需要分批组织项目目录。文档入口可在各任务交接时切换，无须为升级停止其他工作。详细的选择、目录、worktree 命令和跨分支进度读取见 [project-architecture.md](skills/jiaojie/references/project-architecture.md)。
 
 ## 默认规则
 
@@ -95,7 +108,9 @@ project/
 └── scripts/check.sh
 ```
 
-产物目录随任务创建：`out/reports/`、`out/presentations/`、`out/workbuddy/`、`assets/generated/`。完整生成提示词与详细过程放产物旁，交接文档只保存入口和当前状态。
+大型项目在同一共同规则入口下，使用 `.ai/workflows/<workflow>/{brief,plan}.md`、`projects/<project>/`、`artifacts/<topic>/`，以及按需建立并忽略的 `worktrees/<workflow>/`。workflow 管理任务，project 管理稳定代码职责，彼此不强制一一对应。worktree 之间的文档随分支版本保存；读取另一分支进度使用 `git show <branch>:.ai/workflows/<workflow>/plan.md`，跨机器先 fetch。Git Bash on Windows 可为该命令加 `MSYS_NO_PATHCONV=1`。合并时将局部进展同步到全局概览。
+
+小型模式的产物目录随任务创建：`out/reports/`、`out/presentations/`、`out/workbuddy/`、`assets/generated/`。大型项目默认放入 `artifacts/<topic>/`。完整生成提示词与详细过程放产物旁，交接文档只保存入口和当前状态。
 
 ## 维护这个仓库
 

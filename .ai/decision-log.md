@@ -1,5 +1,11 @@
 # 当前有效决策
 
+## 2026-10-20：small／large 与渐进升级
+
+按独立工作流和上下文需求选择两种模式。默认 small 保留原初始化；large 根 brief／plan／index 只保存全局目标、简要状态和导航，任务详细目标与计划放 workflows。workflow 与代码 project 不强制对应。辅助记录按需创建，避免重复状态。升级先提取局部文档，现有代码、数据、历史和运行任务保持原位，路径迁移另行评估。
+
+worktree 按实际并行需要创建；文档随分支版本保存，通过 git show 读取已提交进度，跨机器先 fetch，合并时同步概览。新增普通行为检查 modes.sh 验证双模式生成、文件保留、参数边界与实际 worktree 行为，统一入口仍为 scripts/check.sh；Windows Git Bash 的 git show 示例需禁用 MSYS 路径改写。文档语义通过阅读核对。
+
 ## 2026-10-12：共享规则与实际角色
 
 AGENTS.md 是所有 agent 的共享规则入口；默认由用户切换 Astra／Sol 会话。Claude Code 参与时创建引用入口，Workbuddy 按内容索引读来源并保存产物。角色可按用户安排调整，skill 不自行启动会话。

@@ -1,4 +1,4 @@
 interface:
   display_name: "Jiaojie"
-  short_description: "Maintain readable projects and agent handoffs"
-  default_prompt: "Use $jiaojie to initialize or update this project's rules, concise handoff documents, and content index for Codex Astra/Sol collaboration."
+  short_description: "Initialize small or multi-workflow agent projects"
+  default_prompt: "Use $jiaojie to choose a project scale and initialize or update its agent handoffs and workflow index."

@@ -19,5 +19,9 @@
 | 写作与来源 | [writing-rules.md](../references/writing-rules.md) | 内置 Anti-Defensive Writing、许可和应用 |
 | 统一检查 | [check.sh](../scripts/check.sh) | 打包、复制、初始化和失败传播 |
 | 初始化行为测试 | [scaffold.sh](../scripts/checks/scaffold.sh) | 可选 Claude 入口、已有文件保留 |
+| 双模式架构与升级 | [project-architecture.md](../skills/jiaojie/references/project-architecture.md) | 选择规模、全局／局部职责、目录、分支工作区与渐进升级 |
+| 大型项目模板 | [large-templates](../skills/jiaojie/assets/large-templates) | 全局概览、局部 brief／plan 及 worktree 忽略项 |
+| 模式行为测试 | [modes.sh](../scripts/checks/modes.sh) | 大型初始化、无损增量、参数边界与实际 Git worktree |
+| 本机安装位置 | `C:/Users/26679/.codex/skills/jiaojie/` | 本轮同步 28 个技能文件，按仓库 `skills/jiaojie/` 对照核验 |
 
 包内 assets 为输出模板，references 为运行规则与维护说明，scripts 只负责初始化；根运行规则供本仓库使用。Workbuddy 若参与，报告与附件放 `out/workbuddy/<topic>/`，在本索引登记来源和采用状态。测试临时目录由检查退出时清理，不作为项目产物。
